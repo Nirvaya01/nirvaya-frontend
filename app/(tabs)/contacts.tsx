@@ -1,60 +1,21 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    FlatList,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-
-type Contact = {
-  id: string;
-  name: string;
-  relation: string;
-  phone: string;
-  trusted: boolean;
-  initial: string;
-};
+import ContactCard, { Contact } from '../../components/contacts/ContactCard';
 
 const INITIAL_CONTACTS: Contact[] = [
   { id: '1', name: 'Michael Chen', relation: 'Brother', phone: '+1 (555) 019-2834', trusted: true, initial: 'M' },
   { id: '2', name: 'Sarah Jenkins', relation: 'Mother', phone: '+1 (555) 837-9921', trusted: true, initial: 'S' },
   { id: '3', name: 'David Ross', relation: 'Roommate', phone: '+1 (555) 342-1188', trusted: false, initial: 'D' },
 ];
-
-function ContactCard({
-  item,
-  onPress,
-}: {
-  item: Contact;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.initial}</Text>
-      </View>
-      <View style={styles.info}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name}>{item.name}</Text>
-          {item.trusted && (
-            <View style={styles.badge}>
-              <MaterialIcons name="verified" size={12} color="#0f5132" />
-              <Text style={styles.badgeText}>Trusted</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.subtitle}>{item.relation} • {item.phone}</Text>
-      </View>
-      <TouchableOpacity style={styles.callButton}>
-        <Ionicons name="call" size={20} color="#0f5132" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-}
 
 export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
@@ -212,50 +173,6 @@ const styles = StyleSheet.create({
   titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
   title: { fontSize: 28, fontWeight: '800', color: '#1a1a2e' },
   subtitleText: { fontSize: 14, color: '#6b7280', marginTop: 4 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#dde3f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: { fontWeight: '700', color: '#1a1a2e', fontSize: 16 },
-  info: { flex: 1 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  name: { fontWeight: '700', fontSize: 16, color: '#1a1a2e' },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#d1f5e0',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  badgeText: { fontSize: 11, color: '#0f5132', fontWeight: '600' },
-  subtitle: { color: '#6b7280', marginTop: 2, fontSize: 13 },
-  callButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e8ecf7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   fab: {
     position: 'absolute',
     right: 20,
