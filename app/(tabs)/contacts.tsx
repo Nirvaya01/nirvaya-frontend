@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 10,
-    marginTop: 24,
+https://github.com/Nirvaya01/nirvaya-frontend/pull/2/conflict?name=app%252F%2528tabs%2529%252Fhistory.tsx&base_oid=c623a8867d79e1a0bda96290adc28494fe7c8acd&head_oid=f54e1a54e7f0d03dd748aff1a33016588d5aed4e    marginTop: 24,
   },
   deleteBtn: {
     paddingVertical: 10,
