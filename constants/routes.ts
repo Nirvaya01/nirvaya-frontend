@@ -1,8 +1,12 @@
+/**
+ * Centralised route constants for the app.
+ * Values match the file-based route names used by expo-router.
+ */
 export const ROUTES = {
-  HOME: 'Home',
-  HISTORY: 'History',
-  CONTACTS: 'Contacts',
-  PROFILE: 'Profile',
+  HOME: 'index',
+  CONTACTS: 'contacts',
+  HISTORY: 'history',
+  PROFILE: 'profile',
 } as const;
 
-export type RouteValues = (typeof ROUTES)[keyof typeof ROUTES];
+export type RouteName = (typeof ROUTES)[keyof typeof ROUTES];

@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
   FlatList,
   Modal,
@@ -8,13 +8,34 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import ContactCard, { Contact } from '../../components/contacts/ContactCard';
+} from "react-native";
+import ContactCard, { Contact } from "../../components/contacts/ContactCard";
 
 const INITIAL_CONTACTS: Contact[] = [
-  { id: '1', name: 'Michael Chen', relation: 'Brother', phone: '+1 (555) 019-2834', trusted: true, initial: 'M' },
-  { id: '2', name: 'Sarah Jenkins', relation: 'Mother', phone: '+1 (555) 837-9921', trusted: true, initial: 'S' },
-  { id: '3', name: 'David Ross', relation: 'Roommate', phone: '+1 (555) 342-1188', trusted: false, initial: 'D' },
+  {
+    id: "1",
+    name: "Michael Chen",
+    relation: "Brother",
+    phone: "+1 (555) 019-2834",
+    trusted: true,
+    initial: "M",
+  },
+  {
+    id: "2",
+    name: "Sarah Jenkins",
+    relation: "Mother",
+    phone: "+1 (555) 837-9921",
+    trusted: true,
+    initial: "S",
+  },
+  {
+    id: "3",
+    name: "David Ross",
+    relation: "Roommate",
+    phone: "+1 (555) 342-1188",
+    trusted: false,
+    initial: "D",
+  },
 ];
 
 export default function Contacts() {
@@ -22,15 +43,15 @@ export default function Contacts() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [formName, setFormName] = useState('');
-  const [formRelation, setFormRelation] = useState('');
-  const [formPhone, setFormPhone] = useState('');
+  const [formName, setFormName] = useState("");
+  const [formRelation, setFormRelation] = useState("");
+  const [formPhone, setFormPhone] = useState("");
 
   function openAddModal() {
     setEditingId(null);
-    setFormName('');
-    setFormRelation('');
-    setFormPhone('');
+    setFormName("");
+    setFormRelation("");
+    setFormPhone("");
     setModalVisible(true);
   }
 
@@ -49,9 +70,15 @@ export default function Contacts() {
       setContacts((prev) =>
         prev.map((c) =>
           c.id === editingId
-            ? { ...c, name: formName, relation: formRelation, phone: formPhone, initial: formName[0].toUpperCase() }
-            : c
-        )
+            ? {
+                ...c,
+                name: formName,
+                relation: formRelation,
+                phone: formPhone,
+                initial: formName[0].toUpperCase(),
+              }
+            : c,
+        ),
       );
     } else {
       const newContact: Contact = {
@@ -60,7 +87,7 @@ export default function Contacts() {
         relation: formRelation,
         phone: formPhone,
         trusted: false,
-        initial: formName[0]?.toUpperCase() ?? '?',
+        initial: formName[0]?.toUpperCase() ?? "?",
       };
       setContacts((prev) => [...prev, newContact]);
     }
@@ -75,12 +102,6 @@ export default function Contacts() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="chevron-back" size={24} color="#1a1a2e" />
-        <Text style={styles.headerTitle}>Nirvaya</Text>
-        <Ionicons name="settings-outline" size={22} color="#1a1a2e" />
-      </View>
-
       <View style={styles.titleBlock}>
         <Text style={styles.title}>Trusted Circle</Text>
         <Text style={styles.subtitleText}>Your emergency contacts</Text>
@@ -108,7 +129,7 @@ export default function Contacts() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>
-              {editingId ? 'Edit Contact' : 'Add Contact'}
+              {editingId ? "Edit Contact" : "Add Contact"}
             </Text>
 
             <Text style={styles.label}>Name</Text>
@@ -138,7 +159,10 @@ export default function Contacts() {
 
             <View style={styles.modalActions}>
               {editingId && (
-                <TouchableOpacity style={styles.deleteBtn} onPress={deleteContact}>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={deleteContact}
+                >
                   <Text style={styles.deleteBtnText}>Delete</Text>
                 </TouchableOpacity>
               )}
@@ -160,41 +184,32 @@ export default function Contacts() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6fb' },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingTop: 50,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a2e' },
-  titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: '#1a1a2e' },
-  subtitleText: { fontSize: 14, color: '#6b7280', marginTop: 4 },
+  container: { flex: 1, backgroundColor: "#f4f6fb" },
+  titleBlock: { paddingHorizontal: 16, marginTop: 16, marginBottom: 16 },
+  title: { fontSize: 28, fontWeight: "800", color: "#1a1a2e" },
+  subtitleText: { fontSize: 14, color: "#6b7280", marginTop: 4 },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     bottom: 100,
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#1a1a2e',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#1a1a2e",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
   },
   modalCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -202,39 +217,38 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1a1a2e',
+    fontWeight: "800",
+    color: "#1a1a2e",
     marginBottom: 16,
   },
-  label: { fontSize: 13, color: '#6b7280', marginBottom: 4, marginTop: 12 },
+  label: { fontSize: 13, color: "#6b7280", marginBottom: 4, marginTop: 12 },
   input: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#1a1a2e',
+    color: "#1a1a2e",
   },
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 10,
-https://github.com/Nirvaya01/nirvaya-frontend/pull/2/conflict?name=app%252F%2528tabs%2529%252Fhistory.tsx&base_oid=c623a8867d79e1a0bda96290adc28494fe7c8acd&head_oid=f54e1a54e7f0d03dd748aff1a33016588d5aed4e    marginTop: 24,
   },
   deleteBtn: {
     paddingVertical: 10,
     paddingHorizontal: 14,
-    marginRight: 'auto',
+    marginRight: "auto",
   },
-  deleteBtnText: { color: '#dc2626', fontWeight: '600' },
+  deleteBtnText: { color: "#dc2626", fontWeight: "600" },
   cancelBtn: { paddingVertical: 10, paddingHorizontal: 14 },
-  cancelBtnText: { color: '#6b7280', fontWeight: '600' },
+  cancelBtnText: { color: "#6b7280", fontWeight: "600" },
   saveBtn: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: "#1a1a2e",
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
   },
-  saveBtnText: { color: '#fff', fontWeight: '700' },
+  saveBtnText: { color: "#fff", fontWeight: "700" },
 });

@@ -15,8 +15,6 @@ import {
 
 const { width } = Dimensions.get("window");
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-
 const COLORS = {
   background: "#EEF2F7",
   cardBg: "#FFFFFF",
@@ -27,15 +25,11 @@ const COLORS = {
   textSecondary: "#6B7280",
   textMuted: "#9CA3AF",
   accent: "#3B82F6",
-  navActive: "#1A1A2E",
-  navInactive: "#9CA3AF",
   avatarBorder: "#E5E7EB",
   cardBorder: "#F3F4F6",
   sosRing: "rgba(192,57,43,0.15)",
   sosRingOuter: "rgba(192,57,43,0.07)",
 } as const;
-
-// ─── TypeScript Interfaces ────────────────────────────────────────────────────
 
 interface User {
   name: string;
@@ -60,11 +54,6 @@ interface RecentAlert {
   time: string;
 }
 
-interface NavTab {
-  label: string;
-  icon: string;
-}
-
 interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;
@@ -82,8 +71,6 @@ interface UserAvatarProps {
   user: User;
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
 const MOCK_USER: User = {
   name: "Sarah",
   avatar: null,
@@ -92,7 +79,7 @@ const MOCK_USER: User = {
 
 const MOCK_LOCATION: Location = {
   label: "CURRENT LOCATION",
-  address: "Safety Way,kathmandu",
+  address: "Safety Way, kathmandu",
 };
 
 const MOCK_CONTACTS: Contact[] = [
@@ -104,28 +91,16 @@ const MOCK_CONTACTS: Contact[] = [
 
 const MOCK_RECENT_ALERT: RecentAlert | null = null;
 
-const NAV_TABS: NavTab[] = [
-  { label: "Home", icon: "🏠" },
-  { label: "Contacts", icon: "👥" },
-  { label: "History", icon: "🕐" },
-  { label: "Profile", icon: "👤" },
-];
-
-// ─── Reusable Components ──────────────────────────────────────────────────────
-
-/** Generic card wrapper */
 const Card: React.FC<CardProps> = ({ children, style }) => (
   <View style={[styles.card, style]}>{children}</View>
 );
 
-/** Uppercase section label inside a card */
 const SectionLabel: React.FC<SectionLabelProps> = ({ text }) => (
   <View style={styles.sectionLabelRow}>
     <Text style={styles.sectionLabelText}>{text}</Text>
   </View>
 );
 
-/** Overlapping avatar initials with overflow count */
 const AvatarStack: React.FC<AvatarStackProps> = ({ contacts }) => (
   <View style={styles.avatarStack}>
     {contacts.slice(0, 3).map((contact: Contact, index: number) => (
@@ -158,7 +133,6 @@ const AvatarStack: React.FC<AvatarStackProps> = ({ contacts }) => (
   </View>
 );
 
-/** User avatar with image or initial fallback */
 const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => (
   <View>
     {user.avatar ? (
@@ -171,10 +145,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => (
   </View>
 );
 
-// ─── Home Screen ──────────────────────────────────────────────────────────────
-
-const HomeScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("Home");
+export default function DashboardContent() {
   const [sosPressed, setSosPressed] = useState<boolean>(false);
 
   const handleSOS = (): void => {
@@ -194,7 +165,6 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* ── Header ── */}
       <View style={styles.header}>
         <Text style={styles.appName}>Nirvaya</Text>
         <TouchableOpacity style={styles.settingsIcon}>
@@ -206,7 +176,6 @@ const HomeScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Greeting Section ── */}
         <View style={styles.greetingRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greetingText}>Hello, {MOCK_USER.name}.</Text>
@@ -236,7 +205,6 @@ const HomeScreen: React.FC = () => {
           <UserAvatar user={MOCK_USER} />
         </View>
 
-        {/* ── SOS Button ── */}
         <View style={styles.sosBgCircleOuter}>
           <View style={styles.sosBgCircleInner}>
             <TouchableOpacity
@@ -253,7 +221,6 @@ const HomeScreen: React.FC = () => {
           Tap to notify your emergency{"\n"}contacts.
         </Text>
 
-        {/* ── Current Location Card ── */}
         <Card style={styles.locationCard}>
           <View style={styles.locationMapThumb}>
             <Text style={{ fontSize: 22 }}>🗺</Text>
@@ -270,7 +237,6 @@ const HomeScreen: React.FC = () => {
           </TouchableOpacity>
         </Card>
 
-        {/* ── Emergency Contacts Card ── */}
         <Card>
           <SectionLabel text="EMERGENCY CONTACTS" />
           <View style={styles.contactsRow}>
@@ -284,7 +250,6 @@ const HomeScreen: React.FC = () => {
           </View>
         </Card>
 
-        {/* ── Recent Alert Card ── */}
         <Card>
           <SectionLabel text="RECENT ALERT" />
           {MOCK_RECENT_ALERT ? (
@@ -302,50 +267,21 @@ const HomeScreen: React.FC = () => {
 
         <View style={{ height: 20 }} />
       </ScrollView>
-
-      {/* ── Bottom Tab Bar ── */}
-      <View style={styles.tabBar}>
-        {NAV_TABS.map((tab: NavTab) => {
-          const isActive: boolean = activeTab === tab.label;
-          return (
-            <TouchableOpacity
-              key={tab.label}
-              style={styles.tabItem}
-              onPress={() => setActiveTab(tab.label)}
-              activeOpacity={0.7}
-            >
-              <Text style={{ fontSize: 20 }}>{tab.icon}</Text>
-              <Text
-                style={[styles.tabLabel, isActive && styles.tabLabelActive]}
-              >
-                {tab.label}
-              </Text>
-              {isActive && <View style={styles.tabActiveBar} />}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
     </SafeAreaView>
   );
-};
-
-export default HomeScreen;
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
+}
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
-  // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? 12 : 4,
+    paddingTop: Platform.OS === "android" ? 20 : 12,
     paddingBottom: 4,
     backgroundColor: COLORS.background,
   },
@@ -358,15 +294,11 @@ const styles = StyleSheet.create({
   settingsIcon: {
     padding: 4,
   },
-
-  // Scroll
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 16,
   },
-
-  // Greeting
   greetingRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -409,8 +341,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.textPrimary,
   },
-
-  // SOS
   sosBgCircleOuter: {
     alignSelf: "center",
     width: 210,
@@ -464,8 +394,6 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 20,
   },
-
-  // Card
   card: {
     backgroundColor: COLORS.cardBg,
     borderRadius: 16,
@@ -477,8 +405,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-
-  // Section Label
   sectionLabelRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -490,8 +416,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     color: COLORS.textMuted,
   },
-
-  // Location Card
   locationCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -525,8 +449,6 @@ const styles = StyleSheet.create({
   locationChevron: {
     paddingLeft: 8,
   },
-
-  // Contacts
   contactsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -560,8 +482,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#FFFFFF",
   },
-
-  // Recent Alert
   alertItem: {
     padding: 10,
     backgroundColor: "#FEF2F2",
@@ -588,44 +508,5 @@ const styles = StyleSheet.create({
   emptyAlertText: {
     fontSize: 13,
     color: COLORS.textMuted,
-  },
-
-  // Tab Bar
-  tabBar: {
-    flexDirection: "row",
-    backgroundColor: COLORS.cardBg,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.cardBorder,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === "ios" ? 24 : 12,
-    paddingHorizontal: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    position: "relative",
-    paddingBottom: 2,
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: COLORS.navInactive,
-    marginTop: 3,
-  },
-  tabLabelActive: {
-    color: COLORS.navActive,
-  },
-  tabActiveBar: {
-    position: "absolute",
-    bottom: -2,
-    width: 20,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.textPrimary,
   },
 });
