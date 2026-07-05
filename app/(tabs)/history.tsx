@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-export default function ContactsScreen() {
+export default function HistoryScreen() {
   return <View style={styles.container} />;
 }
 

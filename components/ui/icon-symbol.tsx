@@ -1,22 +1,20 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolViewProps, SymbolWeight } from 'expo-symbols';
-import { ComponentProps } from 'react';
+import { SymbolWeight } from 'expo-symbols';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+const MAPPING = {
+  'house.fill': 'home',
+  'paperplane.fill': 'send',
+  'chevron.left.forwardslash.chevron.right': 'code',
+  'chevron.right': 'chevron-right',
+  'person.2.fill': 'people',
+  'clock.fill': 'history',
+  'person.circle.fill': 'account-circle',
+} as const;
 
-/**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
- */
-tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />        // Home
-tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.2.fill" color={color} />     // Contacts
-tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock.fill" color={color} />        // History
-tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.circle.fill" color={color} />// Profile
+export type IconSymbolName = keyof typeof MAPPING;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
