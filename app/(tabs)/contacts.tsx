@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import ContactCard, { Contact } from "../../components/contacts/ContactCard";
+import AppHeader from "../../components/ui/AppHeader";
 
 const INITIAL_CONTACTS: Contact[] = [
   {
@@ -102,6 +103,8 @@ export default function Contacts() {
 
   return (
     <View style={styles.container}>
+      <AppHeader />
+
       <View style={styles.titleBlock}>
         <Text style={styles.title}>Trusted Circle</Text>
         <Text style={styles.subtitleText}>Your emergency contacts</Text>
@@ -184,24 +187,25 @@ export default function Contacts() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f4f6fb" },
-  titleBlock: { paddingHorizontal: 16, marginTop: 16, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: "800", color: "#1a1a2e" },
-  subtitleText: { fontSize: 14, color: "#6b7280", marginTop: 4 },
+  container: { flex: 1, backgroundColor: "#f8f9ff" },
+  titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
+  title: { fontSize: 24, fontWeight: "700", color: "#0d1c2f" },
+  subtitleText: { fontSize: 16, color: "#45474c", marginTop: 4 },
   fab: {
     position: "absolute",
     right: 20,
-    bottom: 100,
+    bottom: 96,
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#091426",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
+    shadowColor: "rgba(30,41,59,1)",
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 6,
   },
   modalOverlay: {
     flex: 1,
@@ -218,10 +222,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1a1a2e",
+    color: "#0d1c2f",
     marginBottom: 16,
   },
-  label: { fontSize: 13, color: "#6b7280", marginBottom: 4, marginTop: 12 },
+  label: { fontSize: 13, color: "#45474c", marginBottom: 4, marginTop: 12 },
   input: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
@@ -229,7 +233,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: "#1a1a2e",
+    color: "#0d1c2f",
   },
   modalActions: {
     flexDirection: "row",
@@ -241,11 +245,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginRight: "auto",
   },
-  deleteBtnText: { color: "#dc2626", fontWeight: "600" },
+  deleteBtnText: { color: "#ba1a1a", fontWeight: "600" },
   cancelBtn: { paddingVertical: 10, paddingHorizontal: 14 },
-  cancelBtnText: { color: "#6b7280", fontWeight: "600" },
+  cancelBtnText: { color: "#45474c", fontWeight: "600" },
   saveBtn: {
-    backgroundColor: "#1a1a2e",
+    backgroundColor: "#091426",
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 10,
