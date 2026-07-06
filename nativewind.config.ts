@@ -1,4 +1,3 @@
-import { create } from 'nativewind';
 import colors from './tokens/colors';
 
 // Map a subset of tokens to NativeWind theme keys
