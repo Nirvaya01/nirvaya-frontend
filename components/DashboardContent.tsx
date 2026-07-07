@@ -1,512 +1,567 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
-  Alert,
+  Animated,
   Dimensions,
   Image,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
 } from "react-native";
+
+import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
 const COLORS = {
-  background: "#EEF2F7",
-  cardBg: "#FFFFFF",
-  primary: "#C0392B",
-  primaryLight: "#E74C3C",
-  safeGreen: "#27AE60",
-  textPrimary: "#1A1A2E",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
-  accent: "#3B82F6",
-  avatarBorder: "#E5E7EB",
-  cardBorder: "#F3F4F6",
-  sosRing: "rgba(192,57,43,0.15)",
-  sosRingOuter: "rgba(192,57,43,0.07)",
-} as const;
-
-interface User {
-  name: string;
-  avatar: string | null;
-  isSafe: boolean;
-}
-
-interface Location {
-  label: string;
-  address: string;
-}
+  primary: "#091426",
+  secondary: "#006A61",
+  background: "#F8F9FF",
+  white: "#FFFFFF",
+  error: "#BA1A1A",
+  textSecondary: "#45474C",
+  border: "#C5C6CD",
+  safe: "#10B981",
+  safeZone: "#86F2E4",
+  shadow: "rgba(30,41,59,0.08)",
+  surfaceVariant: "#D5E3FD",
+};
 
 interface Contact {
   id: string;
   name: string;
-  initial: string;
-  color: string;
 }
 
-interface RecentAlert {
-  message: string;
-  time: string;
+interface SafeZone {
+  id: string;
+  name: string;
+  active: boolean;
 }
 
-interface CardProps {
-  children: React.ReactNode;
-  style?: ViewStyle;
-}
-
-interface SectionLabelProps {
-  text: string;
-}
-
-interface AvatarStackProps {
-  contacts: Contact[];
-}
-
-interface UserAvatarProps {
-  user: User;
-}
-
-const MOCK_USER: User = {
-  name: "Sarah",
-  avatar: null,
-  isSafe: true,
-};
-
-const MOCK_LOCATION: Location = {
-  label: "CURRENT LOCATION",
-  address: "Safety Way, kathmandu",
-};
-
-const MOCK_CONTACTS: Contact[] = [
-  { id: "1", name: "Mom", initial: "M", color: "#F59E0B" },
-  { id: "2", name: "Sister", initial: "S", color: "#8B5CF6" },
-  { id: "3", name: "Jess", initial: "J", color: "#10B981" },
-  { id: "4", name: "Officer Ray", initial: "R", color: "#3B82F6" },
+const contacts: Contact[] = [
+  { id: "1", name: "Robert" },
+  { id: "2", name: "Maria" },
+  { id: "3", name: "Jordan" },
+  { id: "4", name: "Priya" },
 ];
 
-const MOCK_RECENT_ALERT: RecentAlert | null = null;
+const safeZones: SafeZone[] = [
+  { id: "1", name: "Home", active: true },
+  { id: "2", name: "College", active: false },
+  { id: "3", name: "Work", active: false },
+];
 
-const Card: React.FC<CardProps> = ({ children, style }) => (
-  <View style={[styles.card, style]}>{children}</View>
-);
+interface CardProps {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  onPress?: () => void;
+}
 
-const SectionLabel: React.FC<SectionLabelProps> = ({ text }) => (
-  <View style={styles.sectionLabelRow}>
-    <Text style={styles.sectionLabelText}>{text}</Text>
-  </View>
-);
+const DashboardCard = ({ title, icon, children, onPress }: CardProps) => {
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTitleRow}>
+          {icon}
+          <Text style={styles.cardTitle}>{title}</Text>
+        </View>
 
-const AvatarStack: React.FC<AvatarStackProps> = ({ contacts }) => (
-  <View style={styles.avatarStack}>
-    {contacts.slice(0, 3).map((contact: Contact, index: number) => (
-      <View
-        key={contact.id}
-        style={[
-          styles.avatarCircle,
-          {
-            backgroundColor: contact.color,
-            marginLeft: index === 0 ? 0 : -8,
-            zIndex: 10 - index,
-          },
-        ]}
-      >
-        <Text style={styles.avatarInitial}>{contact.initial}</Text>
+        <MaterialIcons name="chevron-right" size={22} color="#999" />
       </View>
-    ))}
-    {contacts.length > 3 && (
-      <View
-        style={[
-          styles.avatarCircle,
-          { backgroundColor: "#E5E7EB", marginLeft: -8 },
-        ]}
-      >
-        <Text style={[styles.avatarInitial, { color: COLORS.textSecondary }]}>
-          +{contacts.length - 3}
-        </Text>
+
+      {children}
+    </TouchableOpacity>
+  );
+};
+
+const GreetingHeader = () => {
+  return (
+    <View style={styles.headerContainer}>
+      <Image
+        source={{
+          uri: "https://randomuser.me/api/portraits/women/68.jpg",
+        }}
+        style={styles.avatar}
+      />
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.greeting}>Hello, Sarah.</Text>
+
+        <View style={styles.statusRow}>
+          <View style={styles.safeDot} />
+
+          <Text style={styles.safeText}>You are safe.</Text>
+        </View>
       </View>
-    )}
-  </View>
-);
+    </View>
+  );
+};
 
-const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => (
-  <View>
-    {user.avatar ? (
-      <Image source={{ uri: user.avatar }} style={styles.userAvatar} />
-    ) : (
-      <View style={[styles.userAvatar, styles.userAvatarFallback]}>
-        <Text style={styles.userAvatarInitial}>{user.name[0]}</Text>
-      </View>
-    )}
-  </View>
-);
+const SOSButton = ({ onPress }: { onPress?: () => void }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+  const pulse2 = useRef(new Animated.Value(1)).current;
 
-export default function DashboardContent() {
-  const [sosPressed, setSosPressed] = useState<boolean>(false);
+  useEffect(() => {
+    Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(pulse, {
+            toValue: 1.4,
+            duration: 1800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulse, {
+            toValue: 1,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ]),
 
-  const handleSOS = (): void => {
-    setSosPressed(true);
-    Alert.alert(
-      "🚨 SOS Activated",
-      "Your emergency contacts are being notified with your current location.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-          onPress: () => setSosPressed(false),
-        },
-      ],
-    );
-  };
+        Animated.sequence([
+          Animated.delay(700),
+
+          Animated.timing(pulse2, {
+            toValue: 1.5,
+            duration: 1800,
+            useNativeDriver: true,
+          }),
+
+          Animated.timing(pulse2, {
+            toValue: 1,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]),
+    ).start();
+  }, []);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.appName}>Nirvaya</Text>
-        <TouchableOpacity style={styles.settingsIcon}>
-          <Text style={{ fontSize: 18, color: COLORS.textPrimary }}>⚙</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.sosContainer}>
+      <Animated.View
+        style={[
+          styles.pulse,
+          {
+            transform: [{ scale: pulse }],
+            opacity: pulse.interpolate({
+              inputRange: [1, 1.4],
+              outputRange: [0.35, 0],
+            }),
+          },
+        ]}
+      />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <Animated.View
+        style={[
+          styles.pulse,
+          {
+            transform: [{ scale: pulse2 }],
+            opacity: pulse2.interpolate({
+              inputRange: [1, 1.5],
+              outputRange: [0.25, 0],
+            }),
+          },
+        ]}
+      />
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.sosButton}
+        onPress={onPress}
       >
-        <View style={styles.greetingRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.greetingText}>Hello, {MOCK_USER.name}.</Text>
-            <View style={styles.safeRow}>
+        <MaterialIcons name="emergency" color="white" size={48} />
+
+        <Text style={styles.sosText}>SOS</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.sosCaption}>
+        Tap to notify your emergency contacts.
+      </Text>
+    </View>
+  );
+};
+
+const ProtectionStatus = () => (
+  <View style={styles.protectionCard}>
+    <View style={styles.safeDot} />
+
+    <Text style={styles.safeText}>Protection Active</Text>
+  </View>
+);
+
+export default function HomeDashboard() {
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 20,
+        }}
+      >
+        {/* Header */}
+
+        <View style={styles.topBar}>
+          <TouchableOpacity>
+            <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+
+          <Text style={styles.logo}>Nirvaya</Text>
+
+          <TouchableOpacity>
+            <Feather name="settings" size={22} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <GreetingHeader />
+
+        <ProtectionStatus />
+
+        <SOSButton />
+
+        {/* Remaining cards come in Part 2 */}
+        {/* Safe Zones Card */}
+
+        <DashboardCard
+          title="Safe Zones"
+          icon={
+            <MaterialIcons
+              name="location-on"
+              size={18}
+              color={COLORS.secondary}
+            />
+          }
+        >
+          <Text style={styles.zoneTitle}>Currently inside "Home"</Text>
+
+          <View style={styles.zoneContainer}>
+            {safeZones.map((zone) => (
+              <View
+                key={zone.id}
+                style={[styles.zoneChip, zone.active && styles.activeZone]}
+              >
+                <Text
+                  style={[
+                    styles.zoneText,
+                    zone.active && styles.activeZoneText,
+                  ]}
+                >
+                  {zone.name}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </DashboardCard>
+
+        {/* Trusted Contacts */}
+
+        <DashboardCard
+          title="Trusted Contacts"
+          icon={
+            <MaterialIcons name="group" size={18} color={COLORS.secondary} />
+          }
+        >
+          <View style={styles.contactsRow}>
+            <View>
+              <Text style={styles.bigNumber}>{contacts.length} Protected</Text>
+
+              <Text style={styles.smallText}>Ready to alert</Text>
+            </View>
+
+            <View style={styles.avatarGroup}>
+              {contacts.slice(0, 2).map((c, index) => (
+                <View
+                  key={c.id}
+                  style={[
+                    styles.smallAvatar,
+                    {
+                      marginLeft: index === 0 ? 0 : -10,
+                    },
+                  ]}
+                >
+                  <Text style={styles.avatarLetter}>{c.name.charAt(0)}</Text>
+                </View>
+              ))}
+
               <View
                 style={[
-                  styles.safeDot,
+                  styles.smallAvatar,
                   {
-                    backgroundColor: MOCK_USER.isSafe
-                      ? COLORS.safeGreen
-                      : COLORS.primary,
-                  },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.safeText,
-                  {
-                    color: MOCK_USER.isSafe ? COLORS.safeGreen : COLORS.primary,
+                    marginLeft: -10,
+                    backgroundColor: COLORS.surfaceVariant,
                   },
                 ]}
               >
-                {MOCK_USER.isSafe ? "You are safe." : "Alert active."}
-              </Text>
+                <Text style={styles.avatarLetter}>+2</Text>
+              </View>
             </View>
           </View>
-          <UserAvatar user={MOCK_USER} />
-        </View>
+        </DashboardCard>
 
-        <View style={styles.sosBgCircleOuter}>
-          <View style={styles.sosBgCircleInner}>
-            <TouchableOpacity
-              style={[styles.sosButton, sosPressed && styles.sosButtonPressed]}
-              onPress={handleSOS}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.sosStar}>✱</Text>
-              <Text style={styles.sosLabel}>SOS</Text>
-            </TouchableOpacity>
+        {/* Recent Alert */}
+
+        <DashboardCard
+          title="Recent Alert"
+          icon={
+            <MaterialIcons name="history" size={18} color={COLORS.secondary} />
+          }
+        >
+          <View style={styles.alertContainer}>
+            <MaterialIcons
+              name="notifications-paused"
+              size={40}
+              color="#BBBBBB"
+            />
+
+            <Text style={styles.alertText}>No recent alerts.</Text>
           </View>
-        </View>
-        <Text style={styles.sosTapHint}>
-          Tap to notify your emergency{"\n"}contacts.
-        </Text>
-
-        <Card style={styles.locationCard}>
-          <View style={styles.locationMapThumb}>
-            <Text style={{ fontSize: 22 }}>🗺</Text>
-          </View>
-          <View style={{ flex: 1, paddingLeft: 12 }}>
-            <View style={styles.locationLabelRow}>
-              <Text style={{ fontSize: 11, color: COLORS.accent }}>📍</Text>
-              <Text style={styles.locationLabel}>{MOCK_LOCATION.label}</Text>
-            </View>
-            <Text style={styles.locationAddress}>{MOCK_LOCATION.address}</Text>
-          </View>
-          <TouchableOpacity style={styles.locationChevron}>
-            <Text style={{ color: COLORS.textMuted, fontSize: 18 }}>›</Text>
-          </TouchableOpacity>
-        </Card>
-
-        <Card>
-          <SectionLabel text="EMERGENCY CONTACTS" />
-          <View style={styles.contactsRow}>
-            <View>
-              <Text style={styles.contactsCount}>
-                {MOCK_CONTACTS.length} Protected
-              </Text>
-              <Text style={styles.contactsReady}>Ready to alert</Text>
-            </View>
-            <AvatarStack contacts={MOCK_CONTACTS} />
-          </View>
-        </Card>
-
-        <Card>
-          <SectionLabel text="RECENT ALERT" />
-          {MOCK_RECENT_ALERT ? (
-            <View style={styles.alertItem}>
-              <Text style={styles.alertText}>{MOCK_RECENT_ALERT.message}</Text>
-              <Text style={styles.alertTime}>{MOCK_RECENT_ALERT.time}</Text>
-            </View>
-          ) : (
-            <View style={styles.emptyAlertBox}>
-              <Text style={styles.emptyAlertIcon}>🔔</Text>
-              <Text style={styles.emptyAlertText}>No recent alerts.</Text>
-            </View>
-          )}
-        </Card>
-
-        <View style={{ height: 20 }} />
+        </DashboardCard>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
+
+  topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "android" ? 20 : 12,
-    paddingBottom: 4,
-    backgroundColor: COLORS.background,
+    paddingTop: 15,
+    paddingBottom: 10,
   },
-  appName: {
-    fontSize: 18,
+
+  logo: {
+    fontSize: 22,
     fontWeight: "700",
-    color: COLORS.textPrimary,
-    letterSpacing: 0.5,
+    color: COLORS.primary,
   },
-  settingsIcon: {
-    padding: 4,
-  },
-  scrollContent: {
+
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+    marginTop: 10,
   },
-  greetingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
+
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 15,
+    borderWidth: 2,
+    borderColor: "#fff",
   },
-  greetingText: {
-    fontSize: 24,
+
+  greeting: {
+    fontSize: 28,
     fontWeight: "700",
-    color: COLORS.textPrimary,
+    color: COLORS.primary,
   },
-  safeRow: {
+
+  statusRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 4,
+    marginTop: 6,
   },
+
   safeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.safe,
+    marginRight: 8,
   },
+
   safeText: {
     fontSize: 15,
-    fontWeight: "600",
-  },
-  userAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 2,
-    borderColor: COLORS.avatarBorder,
-  },
-  userAvatarFallback: {
-    backgroundColor: "#DDE3EE",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  userAvatarInitial: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.textPrimary,
-  },
-  sosBgCircleOuter: {
-    alignSelf: "center",
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    backgroundColor: COLORS.sosRingOuter,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sosBgCircleInner: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    backgroundColor: COLORS.sosRing,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sosButton: {
-    width: 136,
-    height: 136,
-    borderRadius: 68,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
-    elevation: 10,
-  },
-  sosButtonPressed: {
-    backgroundColor: "#96281B",
-    transform: [{ scale: 0.96 }],
-  },
-  sosStar: {
-    fontSize: 28,
-    color: "#FFFFFF",
-    marginBottom: 2,
-  },
-  sosLabel: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    letterSpacing: 2,
-  },
-  sosTapHint: {
-    textAlign: "center",
     color: COLORS.textSecondary,
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 14,
-    marginBottom: 20,
   },
-  card: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionLabelRow: {
+
+  protectionCard: {
+    alignSelf: "flex-start",
+    marginHorizontal: 20,
+    marginTop: 20,
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+  },
+
+  sosContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 330,
+    marginTop: 15,
+    marginBottom: 15,
+  },
+
+  pulse: {
+    position: "absolute",
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: COLORS.error,
+  },
+
+  sosButton: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: COLORS.error,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 12,
+    shadowColor: COLORS.error,
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+  },
+
+  sosText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 40,
+    marginTop: 6,
+  },
+
+  sosCaption: {
+    marginTop: 28,
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    textAlign: "center",
+    width: 250,
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    marginBottom: 18,
+    borderRadius: 18,
+    padding: 18,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  cardTitle: {
+    marginLeft: 8,
+    color: COLORS.secondary,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+
+  zoneTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: COLORS.primary,
+    marginBottom: 15,
+  },
+
+  zoneContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+
+  zoneChip: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginRight: 10,
     marginBottom: 10,
   },
-  sectionLabelText: {
-    fontSize: 11,
+
+  activeZone: {
+    backgroundColor: COLORS.safeZone,
+    borderColor: COLORS.safeZone,
+  },
+
+  zoneText: {
+    color: COLORS.textSecondary,
     fontWeight: "600",
-    letterSpacing: 0.6,
-    color: COLORS.textMuted,
   },
-  locationCard: {
-    flexDirection: "row",
-    alignItems: "center",
+
+  activeZoneText: {
+    color: COLORS.secondary,
   },
-  locationMapThumb: {
-    width: 52,
-    height: 52,
-    borderRadius: 10,
-    backgroundColor: "#EEF2F7",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  locationLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 3,
-  },
-  locationLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.6,
-    color: COLORS.accent,
-    marginLeft: 3,
-  },
-  locationAddress: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: COLORS.textPrimary,
-    lineHeight: 20,
-  },
-  locationChevron: {
-    paddingLeft: 8,
-  },
+
   contactsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  contactsCount: {
-    fontSize: 20,
+
+  bigNumber: {
+    fontSize: 24,
     fontWeight: "700",
-    color: COLORS.textPrimary,
+    color: COLORS.primary,
   },
-  contactsReady: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 2,
+
+  smallText: {
+    marginTop: 5,
+    color: COLORS.textSecondary,
   },
-  avatarStack: {
+
+  avatarGroup: {
     flexDirection: "row",
     alignItems: "center",
   },
-  avatarCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+
+  smallAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#FFFFFF",
+    borderColor: "#fff",
   },
-  avatarInitial: {
-    fontSize: 12,
+
+  avatarLetter: {
+    color: "#fff",
     fontWeight: "700",
-    color: "#FFFFFF",
+    fontSize: 14,
   },
-  alertItem: {
-    padding: 10,
-    backgroundColor: "#FEF2F2",
-    borderRadius: 10,
-  },
-  alertText: {
-    fontSize: 13,
-    color: COLORS.textPrimary,
-  },
-  alertTime: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    marginTop: 4,
-  },
-  emptyAlertBox: {
+
+  alertContainer: {
+    justifyContent: "center",
     alignItems: "center",
     paddingVertical: 20,
   },
-  emptyAlertIcon: {
-    fontSize: 28,
-    opacity: 0.25,
-    marginBottom: 8,
-  },
-  emptyAlertText: {
-    fontSize: 13,
-    color: COLORS.textMuted,
+
+  alertText: {
+    marginTop: 10,
+    color: COLORS.textSecondary,
+    fontSize: 16,
   },
 });
