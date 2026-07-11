@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import AlertCard, { AlertEntry } from '../../components/history/AlertCard';
+import AppHeader from '../../components/ui/AppHeader';
 
 const ALERT_HISTORY: AlertEntry[] = [
   {
@@ -32,6 +33,8 @@ const ALERT_HISTORY: AlertEntry[] = [
 export default function History() {
   return (
     <View style={styles.container}>
+      <AppHeader />
+
       <View style={styles.titleBlock}>
         <Text style={styles.title}>Alert History</Text>
       </View>
@@ -47,7 +50,7 @@ export default function History() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f6fb' },
-  titleBlock: { paddingHorizontal: 16, marginTop: 16, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: '800', color: '#1a1a2e' },
+  container: { flex: 1, backgroundColor: '#f8f9ff' },
+  titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
+  title: { fontSize: 28, fontWeight: '800', color: '#0d1c2f' },
 });

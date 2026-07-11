@@ -1,105 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import {
-  FlatList,
-  Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import ContactCard, { Contact } from "../../components/contacts/ContactCard";
+import { router } from "expo-router";
+import React from "react";
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ContactCard from "../../components/contacts/ContactCard";
 import AppHeader from "../../components/ui/AppHeader";
-
-const INITIAL_CONTACTS: Contact[] = [
-  {
-    id: "1",
-    name: "Michael Chen",
-    relation: "Brother",
-    phone: "+1 (555) 019-2834",
-    trusted: true,
-    initial: "M",
-  },
-  {
-    id: "2",
-    name: "Sarah Jenkins",
-    relation: "Mother",
-    phone: "+1 (555) 837-9921",
-    trusted: true,
-    initial: "S",
-  },
-  {
-    id: "3",
-    name: "David Ross",
-    relation: "Roommate",
-    phone: "+1 (555) 342-1188",
-    trusted: false,
-    initial: "D",
-  },
-];
+import { useContacts } from "../../contexts/ContactsContext";
 
 export default function Contacts() {
-  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const [formName, setFormName] = useState("");
-  const [formRelation, setFormRelation] = useState("");
-  const [formPhone, setFormPhone] = useState("");
-
-  function openAddModal() {
-    setEditingId(null);
-    setFormName("");
-    setFormRelation("");
-    setFormPhone("");
-    setModalVisible(true);
-  }
-
-  function openEditModal(contact: Contact) {
-    setEditingId(contact.id);
-    setFormName(contact.name);
-    setFormRelation(contact.relation);
-    setFormPhone(contact.phone);
-    setModalVisible(true);
-  }
-
-  function saveContact() {
-    if (!formName.trim()) return;
-
-    if (editingId) {
-      setContacts((prev) =>
-        prev.map((c) =>
-          c.id === editingId
-            ? {
-                ...c,
-                name: formName,
-                relation: formRelation,
-                phone: formPhone,
-                initial: formName[0].toUpperCase(),
-              }
-            : c,
-        ),
-      );
-    } else {
-      const newContact: Contact = {
-        id: Date.now().toString(),
-        name: formName,
-        relation: formRelation,
-        phone: formPhone,
-        trusted: false,
-        initial: formName[0]?.toUpperCase() ?? "?",
-      };
-      setContacts((prev) => [...prev, newContact]);
-    }
-    setModalVisible(false);
-  }
-
-  function deleteContact() {
-    if (!editingId) return;
-    setContacts((prev) => prev.filter((c) => c.id !== editingId));
-    setModalVisible(false);
-  }
+  const { contacts } = useContacts();
 
   return (
     <View style={styles.container}>
@@ -114,74 +22,17 @@ export default function Contacts() {
         data={contacts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ContactCard item={item} onPress={() => openEditModal(item)} />
+          <ContactCard
+            item={item}
+            onPress={() => router.push(`/add-contact?id=${item.id}`)}
+          />
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
       />
 
-      <TouchableOpacity style={styles.fab} onPress={openAddModal}>
+      <TouchableOpacity style={styles.fab} onPress={() => router.push("/add-contact")}>
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
-
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>
-              {editingId ? "Edit Contact" : "Add Contact"}
-            </Text>
-
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              style={styles.input}
-              value={formName}
-              onChangeText={setFormName}
-              placeholder="Full name"
-            />
-
-            <Text style={styles.label}>Relation</Text>
-            <TextInput
-              style={styles.input}
-              value={formRelation}
-              onChangeText={setFormRelation}
-              placeholder="e.g. Brother, Mother, Friend"
-            />
-
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={styles.input}
-              value={formPhone}
-              onChangeText={setFormPhone}
-              placeholder="+1 (555) 000-0000"
-              keyboardType="phone-pad"
-            />
-
-            <View style={styles.modalActions}>
-              {editingId && (
-                <TouchableOpacity
-                  style={styles.deleteBtn}
-                  onPress={deleteContact}
-                >
-                  <Text style={styles.deleteBtnText}>Delete</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={saveContact}>
-                <Text style={styles.saveBtnText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -207,52 +58,4 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 6,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 32,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#0d1c2f",
-    marginBottom: 16,
-  },
-  label: { fontSize: 13, color: "#45474c", marginBottom: 4, marginTop: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: "#0d1c2f",
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 10,
-  },
-  deleteBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginRight: "auto",
-  },
-  deleteBtnText: { color: "#ba1a1a", fontWeight: "600" },
-  cancelBtn: { paddingVertical: 10, paddingHorizontal: 14 },
-  cancelBtnText: { color: "#45474c", fontWeight: "600" },
-  saveBtn: {
-    backgroundColor: "#091426",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 10,
-  },
-  saveBtnText: { color: "#fff", fontWeight: "700" },
 });
