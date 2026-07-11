@@ -1,6 +1,6 @@
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   Dimensions,
   Image,
   Platform,
@@ -10,7 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
+  ViewStyle
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -149,18 +149,7 @@ export default function DashboardContent() {
   const [sosPressed, setSosPressed] = useState<boolean>(false);
 
   const handleSOS = (): void => {
-    setSosPressed(true);
-    Alert.alert(
-      "🚨 SOS Activated",
-      "Your emergency contacts are being notified with your current location.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-          onPress: () => setSosPressed(false),
-        },
-      ],
-    );
+    router.push("/sos-confirmation");
   };
 
   return (
