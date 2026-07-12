@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -219,7 +220,7 @@ export default function HomeDashboard() {
 
         <ProtectionStatus />
 
-        <SOSButton />
+        <SOSButton onPress={() => router.push('/sos-confirmation')} />
 
         {/* Remaining cards come in Part 2 */}
         {/* Safe Zones Card */}
