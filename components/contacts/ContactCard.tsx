@@ -1,89 +1,45 @@
-﻿import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+﻿import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React from "react";
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ContactCard from "../../components/contacts/ContactCard";
+import AppHeader from "../../components/ui/AppHeader";
+import { useContacts } from "../../contexts/ContactsContext";
 
-export type Contact = {
-  id: string;
-  name: string;
-  relation: string;
-  phone: string;
-  trusted: boolean;
-  initial: string;
-};
+export default function Contacts() {
+  const { contacts } = useContacts();
 
-type ContactCardProps = {
-  item: Contact;
-  onPress: () => void;
-};
-
-export default function ContactCard({ item, onPress }: ContactCardProps) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.initial}</Text>
+    <View style={styles.container}>
+      <AppHeader />
+      <View style={styles.titleBlock}>
+        <Text style={styles.title}>Trusted Circle</Text>
+        <Text style={styles.subtitleText}>Your emergency contacts</Text>
       </View>
-      <View style={styles.info}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name}>{item.name}</Text>
-          {item.trusted && (
-            <View style={styles.badge}>
-              <MaterialIcons name="verified" size={12} color="#0f5132" />
-              <Text style={styles.badgeText}>Trusted</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.subtitle}>{item.relation} . {item.phone}</Text>
-      </View>
-      <TouchableOpacity style={styles.callButton}>
-        <Ionicons name="call" size={20} color="#0f5132" />
+      <FlatList
+        data={contacts}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ContactCard item={item} onPress={() => router.push(`/add-contact?id=${item.id}`)} />
+        )}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+      />
+      <TouchableOpacity style={styles.fab} onPress={() => router.push("/add-contact")}>
+        <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
-    </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#dde3f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: { fontWeight: '700', color: '#1a1a2e', fontSize: 16 },
-  info: { flex: 1 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  name: { fontWeight: '700', fontSize: 16, color: '#1a1a2e' },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#d1f5e0',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  badgeText: { fontSize: 11, color: '#0f5132', fontWeight: '600' },
-  subtitle: { color: '#6b7280', marginTop: 2, fontSize: 13 },
-  callButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e8ecf7',
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: { flex: 1, backgroundColor: "#f8f9ff" },
+  titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
+  title: { fontSize: 24, fontWeight: "700", color: "#0d1c2f" },
+  subtitleText: { fontSize: 16, color: "#45474c", marginTop: 4 },
+  fab: {
+    position: "absolute", right: 20, bottom: 96, width: 56, height: 56, borderRadius: 16,
+    backgroundColor: "#091426", alignItems: "center", justifyContent: "center",
+    shadowColor: "rgba(30,41,59,1)", shadowOpacity: 0.2, shadowRadius: 16,
+    shadowOffset: { width: 0, height: 12 }, elevation: 6,
   },
 });
