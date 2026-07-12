@@ -9,7 +9,13 @@ type Props = {
 };
 
 export const Card: React.FC<Props> = ({ variant = 'default', children, style }) => {
-  const v = theme.components.card[variant];
+  const v = theme.components.card[variant] as {
+    backgroundColor: string;
+    borderRadius: number;
+    padding: number;
+    borderColor?: string;
+    borderWidth?: number;
+  };
 
   const container: ViewStyle = {
     backgroundColor: v.backgroundColor,
