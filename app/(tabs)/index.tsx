@@ -1,5 +1,5 @@
-import { Redirect } from 'expo-router';
+import DashboardContent from '@/components/DashboardContent';
 
-export default function Index() {
-  return <Redirect href="/sign-in" />;
+export default function HomeScreen() {
+  return <DashboardContent />;
 }
