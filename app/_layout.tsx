@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from "./Context/Authcontext";
 import { ContactsProvider } from '../contexts/ContactsContext';
 
