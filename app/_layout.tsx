@@ -5,8 +5,6 @@ import { ContactsProvider } from "../context/ContactsContext";
 function RootNavigation() {
   const { isAuthenticated } = useAuth();
 
-  console.log("Auth =", isAuthenticated);
-
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
