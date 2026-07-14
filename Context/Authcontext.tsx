@@ -1,47 +1,42 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
-type AuthContextType = {
+interface AuthContextType {
   isAuthenticated: boolean;
   login: () => void;
   logout: () => void;
-};
+  signup: () => void;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const login = () => {
-    setIsAuthenticated(true);
-  };
-
+  console.log("LOGIN CALLED");
+  setIsAuthenticated(true);
+};
+  const signup = () => {
+  console.log("SIGNUP CALLED");
+  setIsAuthenticated(true);
+};
   const logout = () => {
-    setIsAuthenticated(false);
+  console.log("LOGOUT CALLED");
+  setIsAuthenticated(false);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        login,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, signup }}>
+
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
+export function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-
-  return context;
+  return ctx;
 }

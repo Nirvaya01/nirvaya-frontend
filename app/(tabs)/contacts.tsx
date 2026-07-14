@@ -1,61 +1,57 @@
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import ContactCard from "../../components/contacts/ContactCard";
-import AppHeader from "../../components/ui/AppHeader";
-import { useContacts } from "../../contexts/ContactsContext";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
+import { useContacts } from "../../context/ContactsContext";
 
-export default function Contacts() {
+export default function ContactsScreen() {
+  const router = useRouter();
   const { contacts } = useContacts();
 
   return (
     <View style={styles.container}>
-      <AppHeader />
-
-      <View style={styles.titleBlock}>
-        <Text style={styles.title}>Trusted Circle</Text>
-        <Text style={styles.subtitleText}>Your emergency contacts</Text>
-      </View>
-
       <FlatList
         data={contacts}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 16 }}
+        ListEmptyComponent={<Text style={styles.empty}>No contacts yet.</Text>}
         renderItem={({ item }) => (
-          <ContactCard
-            item={item}
-            onPress={() => router.push(`/add-contact?id=${item.id}`)}
-          />
+          <View style={styles.card}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.meta}>{item.phone} · {item.relationship}</Text>
+          </View>
         )}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
       />
-
-      <TouchableOpacity style={styles.fab} onPress={() => router.push("/add-contact")}>
-        <Ionicons name="add" size={28} color="#fff" />
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push("/add-contact")}
+      >
+        <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9ff" },
-  titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: "700", color: "#0d1c2f" },
-  subtitleText: { fontSize: 16, color: "#45474c", marginTop: 4 },
+  container: { flex: 1 },
+  empty: { textAlign: "center", marginTop: 40, color: "#6b7280" },
+  card: {
+    backgroundColor: "#f3f4f6",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  name: { fontSize: 16, fontWeight: "600" },
+  meta: { fontSize: 14, color: "#6b7280", marginTop: 4 },
   fab: {
     position: "absolute",
     right: 20,
-    bottom: 96,
+    bottom: 30,
+    backgroundColor: "#2563eb",
     width: 56,
     height: 56,
-    borderRadius: 16,
-    backgroundColor: "#091426",
-    alignItems: "center",
+    borderRadius: 28,
     justifyContent: "center",
-    shadowColor: "rgba(30,41,59,1)",
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 6,
+    alignItems: "center",
   },
+  fabText: { color: "#fff", fontSize: 28, lineHeight: 30 },
 });

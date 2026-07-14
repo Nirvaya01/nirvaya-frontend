@@ -1,40 +1,93 @@
-import { useState } from "react";
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuth } from "../Context/Authcontext";
-import { Button, Input, Typography } from "../../components";
-import theme from "../../theme";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { Link } from "expo-router";
+import { useAuth } from "../../context/AuthContext";
 
-export default function Login() {
-  const { setIsAuthenticated } = useAuth();
-  const router = useRouter();
+export default function LoginScreen() {
+  const { login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <Typography variant="headlineLg" style={styles.title}>Welcome back</Typography>
-      <Typography variant="bodyMd" style={styles.subtitle}>Log in to continue to your Trusted Circle.</Typography>
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome Back</Text>
 
-      <View style={styles.form}>
-        <Input value={email} onChangeText={setEmail} placeholder="Email" style={styles.input} />
-        <Input value={password} onChangeText={setPassword} placeholder="Password" style={styles.input} />
-        <Button variant="primary" onPress={handleLogin} style={styles.button}>Continue</Button>
-        <Button variant="ghost" onPress={() => router.push("/(auth)/signup")} style={styles.button}>Create an account</Button>
-      </View>
-    </KeyboardAvoidingView>
+      <TextInput
+        placeholder="Email"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+      />
+
+      <TextInput
+        placeholder="Password"
+        secureTextEntry
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={login}>
+        <Text style={styles.buttonText}>Continue</Text>
+      </TouchableOpacity>
+
+      <Link href="/(auth)/signup" style={styles.link}>
+        Don't have an account? Sign Up
+      </Link>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background.default, paddingHorizontal: theme.spacing.marginMobile, justifyContent: "center" },
-  title: { marginBottom: theme.spacing.xs },
-  subtitle: { color: theme.colors.text.secondary, marginBottom: theme.spacing.xl },
-  form: { gap: theme.spacing.md },
-  input: { marginBottom: theme.spacing.sm },
-  button: { marginTop: theme.spacing.xs },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 25,
+    backgroundColor: "#fff",
+  },
+
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 40,
+    textAlign: "center",
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 16,
+    marginBottom: 20,
+  },
+
+  button: {
+    backgroundColor: "#2563eb",
+    padding: 16,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  link: {
+    marginTop: 25,
+    textAlign: "center",
+    color: "#2563eb",
+    fontWeight: "600",
+  },
 });

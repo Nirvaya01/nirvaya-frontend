@@ -1,31 +1,18 @@
+import React from "react";
 import { Stack } from "expo-router";
-import { AuthProvider, useAuth } from "./Context/Authcontext";
-import { ContactsProvider } from '../contexts/ContactsContext';
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { ContactsProvider } from "../context/ContactsContext";
+function RootNavigation() {
+  const { isAuthenticated } = useAuth();
 
-function RootNavigator() {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return null;
-  }
+  console.log("Auth =", isAuthenticated);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-       <ContactsProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            <Stack.Screen name="add-contact" options={{ headerShown: false }} />
-          </Stack>
-          <StatusBar style="auto" />
-        </ContactsProvider>
+        <Stack.Screen name="(tabs)" />
       ) : (
-        <>
-          <Stack.Screen name="(auth)/login" />
-          <Stack.Screen name="(auth)/signup" />
-        </>
+        <Stack.Screen name="(auth)" />
       )}
     </Stack>
   );
@@ -34,7 +21,9 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <ContactsProvider>
+        <RootNavigation />
+      </ContactsProvider>
     </AuthProvider>
   );
 }
