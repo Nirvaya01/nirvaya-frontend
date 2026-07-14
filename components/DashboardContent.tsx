@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -138,6 +139,9 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
       ]),
     ).start();
   }, []);
+  const handleSOS = (): void => {
+    router.push("/sos-confirmation");
+  };
 
   return (
     <View style={styles.sosContainer}>
@@ -234,7 +238,7 @@ export default function HomeDashboard() {
             />
           }
         >
-          <Text style={styles.zoneTitle}>Currently inside "Home"</Text>
+          <Text style={styles.zoneTitle}>Currently inside </Text>
 
           <View style={styles.zoneContainer}>
             {safeZones.map((zone) => (
