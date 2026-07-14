@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -13,6 +12,7 @@ import {
 } from "react-native";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -53,6 +53,16 @@ const safeZones: SafeZone[] = [
   { id: "2", name: "College", active: false },
   { id: "3", name: "Work", active: false },
 ];
+
+interface Location {
+  label: string;
+  address: string;
+}
+
+const MOCK_LOCATION: Location = {
+  label: "CURRENT LOCATION",
+  address: "Safety Way, kathmandu",
+};
 
 interface CardProps {
   title: string;
@@ -101,12 +111,16 @@ const GreetingHeader = () => {
   );
 };
 
-const SOSButton = ({ onPress }: { onPress?: () => void }) => {
+interface SOSButtonProps {
+  onPress: () => void;
+}
+
+const SOSButton = ({ onPress }: SOSButtonProps) => {
   const pulse = useRef(new Animated.Value(1)).current;
   const pulse2 = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.parallel([
         Animated.sequence([
           Animated.timing(pulse, {
@@ -123,13 +137,11 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
 
         Animated.sequence([
           Animated.delay(700),
-
           Animated.timing(pulse2, {
             toValue: 1.5,
             duration: 1800,
             useNativeDriver: true,
           }),
-
           Animated.timing(pulse2, {
             toValue: 1,
             duration: 0,
@@ -137,11 +149,12 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
           }),
         ]),
       ]),
-    ).start();
+    );
+
+    animation.start();
+
+    return () => animation.stop();
   }, []);
-  const handleSOS = (): void => {
-    router.push("/sos-confirmation");
-  };
 
   return (
     <View style={styles.sosContainer}>
@@ -177,7 +190,6 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
         onPress={onPress}
       >
         <MaterialIcons name="emergency" color="white" size={48} />
-
         <Text style={styles.sosText}>SOS</Text>
       </TouchableOpacity>
 
@@ -197,6 +209,9 @@ const ProtectionStatus = () => (
 );
 
 export default function HomeDashboard() {
+  const handleSOSPress = React.useCallback(() => {
+    router.push("/sos-confirmation");
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -223,8 +238,7 @@ export default function HomeDashboard() {
 
         <ProtectionStatus />
 
-        <SOSButton />
-
+        <SOSButton onPress={handleSOSPress} />
         {/* Remaining cards come in Part 2 */}
         {/* Safe Zones Card */}
 
@@ -238,25 +252,7 @@ export default function HomeDashboard() {
             />
           }
         >
-          <Text style={styles.zoneTitle}>Currently inside </Text>
-
-          <View style={styles.zoneContainer}>
-            {safeZones.map((zone) => (
-              <View
-                key={zone.id}
-                style={[styles.zoneChip, zone.active && styles.activeZone]}
-              >
-                <Text
-                  style={[
-                    styles.zoneText,
-                    zone.active && styles.activeZoneText,
-                  ]}
-                >
-                  {zone.name}
-                </Text>
-              </View>
-            ))}
-          </View>
+          <Text style={styles.zoneTitle}>{MOCK_LOCATION.address} </Text>
         </DashboardCard>
 
         {/* Trusted Contacts */}
