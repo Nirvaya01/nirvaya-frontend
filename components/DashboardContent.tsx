@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -53,16 +54,6 @@ const safeZones: SafeZone[] = [
   { id: "2", name: "College", active: false },
   { id: "3", name: "Work", active: false },
 ];
-
-interface Location {
-  label: string;
-  address: string;
-}
-
-const MOCK_LOCATION: Location = {
-  label: "CURRENT LOCATION",
-  address: "Safety Way, kathmandu",
-};
 
 interface CardProps {
   title: string;
@@ -209,6 +200,69 @@ const ProtectionStatus = () => (
 );
 
 export default function HomeDashboard() {
+  const [currentAddress, setCurrentAddress] = useState<string>(
+    "Fetching location...",
+  );
+  const [coordsText, setCoordsText] = useState<string>("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+
+        if (status !== "granted") {
+          if (isMounted) setCurrentAddress("Location permission not granted");
+          return;
+        }
+
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        if (isMounted) {
+          setCoordsText(
+            `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`,
+          );
+        }
+
+        const [place] = await Location.reverseGeocodeAsync({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+
+        if (!isMounted) return;
+
+        if (place) {
+          // Build the address using every field that might be populated.
+          // Nepal (and many other regions) often return sparse data from
+          // reverse geocoding, so we fall back through multiple fields
+          // instead of relying on `street` alone.
+          const parts = [
+            place.name,
+            place.street,
+            place.district,
+            place.city || place.subregion,
+            place.region,
+          ].filter(Boolean);
+
+          setCurrentAddress(parts.join(", ") || "Location found");
+        } else {
+          setCurrentAddress(
+            `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`,
+          );
+        }
+      } catch (error) {
+        if (isMounted) setCurrentAddress("Unable to fetch location");
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleSOSPress = React.useCallback(() => {
     router.push("/sos-confirmation");
   }, []);
@@ -252,7 +306,10 @@ export default function HomeDashboard() {
             />
           }
         >
-          <Text style={styles.zoneTitle}>{MOCK_LOCATION.address} </Text>
+          <Text style={styles.zoneTitle}>{currentAddress}</Text>
+          {coordsText ? (
+            <Text style={styles.coordsText}>{coordsText}</Text>
+          ) : null}
         </DashboardCard>
 
         {/* Trusted Contacts */}
@@ -482,6 +539,13 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
+    marginBottom: 15,
+  },
+
+  coordsText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: -10,
     marginBottom: 15,
   },
 
