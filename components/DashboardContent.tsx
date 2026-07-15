@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -12,6 +12,8 @@ import {
 } from "react-native";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as Location from "expo-location";
+import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -100,12 +102,16 @@ const GreetingHeader = () => {
   );
 };
 
-const SOSButton = ({ onPress }: { onPress?: () => void }) => {
+interface SOSButtonProps {
+  onPress: () => void;
+}
+
+const SOSButton = ({ onPress }: SOSButtonProps) => {
   const pulse = useRef(new Animated.Value(1)).current;
   const pulse2 = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.parallel([
         Animated.sequence([
           Animated.timing(pulse, {
@@ -122,13 +128,11 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
 
         Animated.sequence([
           Animated.delay(700),
-
           Animated.timing(pulse2, {
             toValue: 1.5,
             duration: 1800,
             useNativeDriver: true,
           }),
-
           Animated.timing(pulse2, {
             toValue: 1,
             duration: 0,
@@ -136,7 +140,11 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
           }),
         ]),
       ]),
-    ).start();
+    );
+
+    animation.start();
+
+    return () => animation.stop();
   }, []);
 
   return (
@@ -173,7 +181,6 @@ const SOSButton = ({ onPress }: { onPress?: () => void }) => {
         onPress={onPress}
       >
         <MaterialIcons name="emergency" color="white" size={48} />
-
         <Text style={styles.sosText}>SOS</Text>
       </TouchableOpacity>
 
@@ -193,6 +200,72 @@ const ProtectionStatus = () => (
 );
 
 export default function HomeDashboard() {
+  const [currentAddress, setCurrentAddress] = useState<string>(
+    "Fetching location...",
+  );
+  const [coordsText, setCoordsText] = useState<string>("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+
+        if (status !== "granted") {
+          if (isMounted) setCurrentAddress("Location permission not granted");
+          return;
+        }
+
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        if (isMounted) {
+          setCoordsText(
+            `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`,
+          );
+        }
+
+        const [place] = await Location.reverseGeocodeAsync({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+
+        if (!isMounted) return;
+
+        if (place) {
+          // Build the address using every field that might be populated.
+          // Nepal (and many other regions) often return sparse data from
+          // reverse geocoding, so we fall back through multiple fields
+          // instead of relying on `street` alone.
+          const parts = [
+            place.name,
+            place.street,
+            place.district,
+            place.city || place.subregion,
+            place.region,
+          ].filter(Boolean);
+
+          setCurrentAddress(parts.join(", ") || "Location found");
+        } else {
+          setCurrentAddress(
+            `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`,
+          );
+        }
+      } catch (error) {
+        if (isMounted) setCurrentAddress("Unable to fetch location");
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSOSPress = React.useCallback(() => {
+    router.push("/sos-confirmation");
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -219,8 +292,7 @@ export default function HomeDashboard() {
 
         <ProtectionStatus />
 
-        <SOSButton />
-
+        <SOSButton onPress={handleSOSPress} />
         {/* Remaining cards come in Part 2 */}
         {/* Safe Zones Card */}
 
@@ -234,25 +306,10 @@ export default function HomeDashboard() {
             />
           }
         >
-          <Text style={styles.zoneTitle}>Currently inside "Home"</Text>
-
-          <View style={styles.zoneContainer}>
-            {safeZones.map((zone) => (
-              <View
-                key={zone.id}
-                style={[styles.zoneChip, zone.active && styles.activeZone]}
-              >
-                <Text
-                  style={[
-                    styles.zoneText,
-                    zone.active && styles.activeZoneText,
-                  ]}
-                >
-                  {zone.name}
-                </Text>
-              </View>
-            ))}
-          </View>
+          <Text style={styles.zoneTitle}>{currentAddress}</Text>
+          {coordsText ? (
+            <Text style={styles.coordsText}>{coordsText}</Text>
+          ) : null}
         </DashboardCard>
 
         {/* Trusted Contacts */}
@@ -482,6 +539,13 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
+    marginBottom: 15,
+  },
+
+  coordsText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: -10,
     marginBottom: 15,
   },
 
