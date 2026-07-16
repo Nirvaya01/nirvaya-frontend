@@ -1,23 +1,50 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthContextType = {
-  isAuthenticated: boolean;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  loading: boolean;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  login: (token: string) => Promise<void>;
+  signup: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-type AuthProviderProps = {
-  children: ReactNode;
-};
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
+
+  const checkLoginStatus = async () => {
+  try {
+    await AsyncStorage.removeItem("userToken"); // temporary
+    setIsLoggedIn(false);
+  } finally {
+    setIsLoading(false);
+  }
+  };
+  
+  const login = async (token: string) => {
+    await AsyncStorage.setItem('userToken', token);
+    setIsLoggedIn(true);
+  };
+
+  const signup = async (token: string) => {
+    await AsyncStorage.setItem('userToken', token);
+    setIsLoggedIn(true);
+  };
+
+  const logout = async () => {
+    await AsyncStorage.removeItem('userToken');
+    setIsLoggedIn(false);
+  };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, loading }}>
+    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -25,8 +52,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
+  if (!context) throw new Error('useAuth must be used inside AuthProvider');
   return context;
 }

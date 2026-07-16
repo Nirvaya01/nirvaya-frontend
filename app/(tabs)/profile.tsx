@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useAuth } from "../Context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -52,7 +53,11 @@ const SettingsRow = ({
   onPress,
 }: RowProps) => {
   return (
-    <TouchableOpacity activeOpacity={0.85} style={styles.row} onPress={onPress}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={styles.row}
+      onPress={onPress}
+    >
       <View style={styles.rowLeft}>
         <View
           style={[
@@ -67,7 +72,6 @@ const SettingsRow = ({
 
         <View>
           <Text style={styles.rowTitle}>{title}</Text>
-
           <Text style={styles.rowSubtitle}>{subtitle}</Text>
         </View>
       </View>
@@ -78,6 +82,18 @@ const SettingsRow = ({
 };
 
 export default function Profile() {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      console.log("Logged out successfully");
+      // app/_layout.tsx automatically redirects to login
+    } catch (error) {
+      console.log("Logout error:", error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -118,12 +134,11 @@ export default function Profile() {
 
           <TouchableOpacity style={styles.editButton}>
             <MaterialIcons name="edit" color="white" size={18} />
-
             <Text style={styles.editText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Safety Core Card */}
+        {/* Safety Core */}
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>SAFETY CORE</Text>
@@ -146,7 +161,8 @@ export default function Profile() {
             iconColor="#006A61"
           />
         </View>
-        {/* Security Card */}
+
+        {/* Security */}
 
         <View style={styles.card}>
           <SettingsRow
@@ -158,26 +174,33 @@ export default function Profile() {
           />
         </View>
 
-        {/* Logout Card */}
+        {/* Logout */}
 
-        <TouchableOpacity activeOpacity={0.9} style={styles.logoutCard}>
+        <TouchableOpacity
+          activeOpacity={0.9}
+          style={styles.logoutCard}
+          onPress={handleLogout}
+        >
           <View style={styles.logoutLeft}>
             <View style={styles.logoutIcon}>
-              <MaterialIcons name="logout" size={22} color={COLORS.error} />
+              <MaterialIcons
+                name="logout"
+                size={22}
+                color={COLORS.error}
+              />
             </View>
 
             <Text style={styles.logoutText}>Logout</Text>
           </View>
         </TouchableOpacity>
 
-        {/* Version */}
-
-        <Text style={styles.version}>Nirvaya Version 2.4.1</Text>
+        <Text style={styles.version}>
+          Nirvaya Version 2.4.1
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -185,108 +208,117 @@ const styles = StyleSheet.create({
   },
 
   topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    height: 60,
+    width: "100%",
     paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
   logo: {
     fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
+    letterSpacing: 0.5,
   },
 
   profileCard: {
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 15,
     backgroundColor: COLORS.white,
-    borderRadius: 22,
-    overflow: "hidden",
+    borderRadius: 24,
     alignItems: "center",
-    paddingBottom: 22,
+    paddingBottom: 25,
+    overflow: "hidden",
     elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowColor: COLORS.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
     shadowRadius: 8,
   },
 
   profileBackground: {
-    width: "100%",
     height: 90,
-    backgroundColor: COLORS.surfaceVariant,
+    width: "100%",
+    backgroundColor: COLORS.secondary,
+    position: "absolute",
+    top: 0,
   },
 
   avatar: {
-    width: 100,
     height: 100,
+    width: 100,
     borderRadius: 50,
-    marginTop: -50,
+    marginTop: 40,
     borderWidth: 4,
     borderColor: COLORS.white,
   },
 
   name: {
     marginTop: 15,
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
   },
 
   email: {
-    marginTop: 6,
+    marginTop: 5,
+    fontSize: 14,
     color: COLORS.textSecondary,
-    fontSize: 16,
   },
 
   editButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 12,
+    marginTop: 18,
+    backgroundColor: COLORS.secondary,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 25,
+    gap: 8,
   },
 
   editText: {
     color: COLORS.white,
-    fontWeight: "700",
-    marginLeft: 8,
-    fontSize: 16,
+    fontWeight: "600",
+    fontSize: 14,
   },
 
   card: {
     backgroundColor: COLORS.white,
     marginHorizontal: 20,
-    marginTop: 22,
-    borderRadius: 18,
-    overflow: "hidden",
-    elevation: 3,
-    shadowColor: "#000",
+    marginTop: 20,
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    elevation: 2,
+    shadowColor: COLORS.shadow,
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
   },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: "700",
-    letterSpacing: 1,
     color: COLORS.secondary,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 8,
+    marginBottom: 10,
+    letterSpacing: 1,
   },
 
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    justifyContent: "space-between",
+    paddingVertical: 14,
   },
 
   rowLeft: {
@@ -296,44 +328,46 @@ const styles = StyleSheet.create({
   },
 
   iconCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    height: 44,
+    width: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 14,
   },
 
   rowTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
     color: COLORS.primary,
   },
 
   rowSubtitle: {
-    marginTop: 4,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    fontSize: 14,
+    marginTop: 3,
   },
 
   divider: {
     height: 1,
     backgroundColor: COLORS.border,
-    marginLeft: 80,
+    marginVertical: 5,
   },
+
   logoutCard: {
-    backgroundColor: COLORS.white,
     marginHorizontal: 20,
-    marginTop: 24,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.errorContainer,
-    paddingVertical: 18,
-    paddingHorizontal: 18,
+    marginTop: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 16,
     elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowColor: COLORS.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
   },
 
   logoutLeft: {
@@ -342,27 +376,25 @@ const styles = StyleSheet.create({
   },
 
   logoutIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "#FFF3F2",
+    height: 44,
+    width: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.errorContainer,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 15,
   },
 
   logoutText: {
-    color: COLORS.error,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "700",
+    color: COLORS.error,
   },
 
   version: {
     textAlign: "center",
-    marginTop: 40,
-    marginBottom: 20,
-    color: COLORS.textSecondary,
-    opacity: 0.6,
+    marginTop: 25,
     fontSize: 13,
+    color: COLORS.textSecondary,
   },
 });
