@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
+
 import { Contact } from '../components/contacts/ContactCard';
+
 
 const INITIAL_CONTACTS: Contact[] = [
   {
