@@ -1,28 +1,41 @@
-import * as Location from 'expo-location';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { ContactsProvider } from '@/contexts/ContactsContext';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { ContactsProvider } from '../contexts/ContactsContext';
+import { AuthProvider, useAuth } from './Context/AuthContext';
 
-export default function RootLayout() {
+function RootLayoutNav() {
+  const { isLoggedIn, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
   useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-  
-    })();
-  }, []);
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isLoggedIn && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isLoggedIn && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isLoggedIn, isLoading, segments]);
+
+  if (isLoading) return null;
 
   return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+   <AuthProvider>
     <ContactsProvider>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="add-contact" options={{ headerShown: false }} />
-        <Stack.Screen name="sos-confirmation" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="alert-status" options={{ presentation: 'modal', headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
+        <RootLayoutNav />
     </ContactsProvider>
+   </AuthProvider>
   );
 }
