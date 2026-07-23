@@ -6,6 +6,8 @@ import { loginUser, signupUser, User } from "../api/authApi";
 type AuthContextType = {
   user: User | null;
 
+  token: string | null;
+
   isLoggedIn: boolean;
 
   isLoading: boolean;
@@ -22,6 +24,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
+  const [token, setToken] = useState<string | null>(null);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -30,27 +34,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkLoginStatus();
   }, []);
 
+  // =========================
   // CHECK STORED LOGIN
+  // =========================
 
   const checkLoginStatus = async () => {
     try {
-      const token = await AsyncStorage.getItem("accessToken");
+      const savedToken = await AsyncStorage.getItem("accessToken");
 
       const savedUser = await AsyncStorage.getItem("user");
 
-      if (token && savedUser) {
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+
         setUser(JSON.parse(savedUser));
 
         setIsLoggedIn(true);
       }
     } catch (error) {
-      console.log(error);
+      console.log("Auth restore error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // =========================
   // LOGIN
+  // =========================
 
   const login = async (email: string, password: string) => {
     try {
@@ -63,6 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         await AsyncStorage.setItem("user", JSON.stringify(response.user));
 
+        setToken(response.accessToken!);
+
         setUser(response.user!);
 
         setIsLoggedIn(true);
@@ -72,13 +84,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return false;
     } catch (error) {
-      console.log(error);
+      console.log("Login error:", error);
 
       return false;
     }
   };
 
+  // =========================
   // SIGNUP
+  // =========================
 
   const signup = async (name: string, email: string, password: string) => {
     try {
@@ -90,16 +104,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return false;
     } catch (error) {
-      console.log(error);
+      console.log("Signup error:", error);
 
       return false;
     }
   };
 
+  // =========================
   // LOGOUT
+  // =========================
 
   const logout = async () => {
     await AsyncStorage.multiRemove(["accessToken", "refreshToken", "user"]);
+
+    setToken(null);
 
     setUser(null);
 
@@ -110,6 +128,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+
+        token,
 
         isLoggedIn,
 
