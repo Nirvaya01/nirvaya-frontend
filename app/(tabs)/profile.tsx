@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -17,7 +18,7 @@ import {
   loginAndGetToken,
   updateProfile,
   UserProfile,
-} from "../api/profileApi";
+} from "../../api/profileApi";
 
 const { width } = Dimensions.get("window");
 
@@ -352,7 +353,6 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 100,
     height: 100,
-    width: 100,
     borderRadius: 50,
     marginTop: 40,
     borderWidth: 4,

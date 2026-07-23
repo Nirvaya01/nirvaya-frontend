@@ -1,16 +1,12 @@
-
 // TODO: replace with your real backend base URL
-export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = "http://10.174.110.101:5000/api";
 
 export type SosResponse = {
   success: boolean;
   message?: string;
 };
 
-// =========================
 // Emergency Contact APIs
-// =========================
-
 export async function getEmergencyContacts(token: string) {
   const response = await fetch(`${API_BASE_URL}/emergency-contacts`, {
     method: "GET",
@@ -28,7 +24,7 @@ export async function createEmergencyContact(
     name: string;
     phone: string;
     relationship: string;
-  }
+  },
 ) {
   const response = await fetch(`${API_BASE_URL}/emergency-contacts`, {
     method: "POST",
@@ -49,36 +45,43 @@ export async function updateEmergencyContact(
     name: string;
     phone: string;
     relationship: string;
-  }
+  },
 ) {
-  const response = await fetch(
-    `${API_BASE_URL}/emergency-contacts/${id}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    }
-  );
+  const response = await fetch(`${API_BASE_URL}/emergency-contacts/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
 
   return response.json();
 }
 
-export async function deleteEmergencyContact(
-  token: string,
-  id: string
-) {
-  const response = await fetch(
-    `${API_BASE_URL}/emergency-contacts/${id}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+export async function deleteEmergencyContact(token: string, id: string) {
+  const response = await fetch(`${API_BASE_URL}/emergency-contacts/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.json();
+}
+
+// Auth APIs
+export async function loginUser(email: string, password: string) {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
 
   return response.json();
 }

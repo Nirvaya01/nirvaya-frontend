@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.1.4:5000";
+const BASE_URL = "http://10.174.110.101:5000/api";
 
 export interface UserProfile {
   id: string;
@@ -20,7 +20,7 @@ export function setAuthToken(token: string) {
 
 export async function loginAndGetToken(
   email: string,
-  password: string
+  password: string,
 ): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
@@ -53,8 +53,11 @@ export async function getProfile(): Promise<UserProfile> {
 
 export async function updateProfile(
   updates: Partial<
-    Pick<UserProfile, "fullName" | "phone" | "profilePicture" | "dob" | "gender">
-  >
+    Pick<
+      UserProfile,
+      "fullName" | "phone" | "profilePicture" | "dob" | "gender"
+    >
+  >,
 ): Promise<UserProfile> {
   const res = await fetch(`${BASE_URL}/api/profile`, {
     method: "PATCH",
