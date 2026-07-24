@@ -1,78 +1,182 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
-import { Contact } from '../components/contacts/ContactCard';
+import { Contact } from "../components/contacts/ContactCard";
 
+import {
+  createEmergencyContact,
+  deleteEmergencyContact,
+  getEmergencyContacts,
+  updateEmergencyContact,
+} from "../api/contactsApi";
 
-const INITIAL_CONTACTS: Contact[] = [
-  {
-    id: '1',
-    name: 'Michael Chen',
-    relation: 'Brother',
-    phone: '+1 (555) 019-2834',
-    trusted: true,
-    initial: 'M',
-  },
-  {
-    id: '2',
-    name: 'Sarah Jenkins',
-    relation: 'Mother',
-    phone: '+1 (555) 837-9921',
-    trusted: true,
-    initial: 'S',
-  },
-  {
-    id: '3',
-    name: 'David Ross',
-    relation: 'Roommate',
-    phone: '+1 (555) 342-1188',
-    trusted: false,
-    initial: 'D',
-  },
-];
+import { useAuth } from "../Context/AuthContext";
 
-type ContactsContextType = {
-  contacts: Contact[];
-  addContact: (contact: Omit<Contact, 'id' | 'initial'>) => void;
-  updateContact: (id: string, contact: Omit<Contact, 'id' | 'initial'>) => void;
-  deleteContact: (id: string) => void;
-  getContact: (id: string) => Contact | undefined;
+type ContactInput = {
+  name: string;
+  email: string;
+  phone: string;
+  relationship: string;
 };
 
-const ContactsContext = createContext<ContactsContextType | undefined>(undefined);
+type ContactsContextType = {
+  contacts: (Contact & { id: string; initial?: string })[];
+
+  loading: boolean;
+
+  fetchContacts: () => Promise<void>;
+
+  addContact: (contact: ContactInput) => Promise<void>;
+
+  updateContact: (id: string, contact: ContactInput) => Promise<void>;
+
+  deleteContact: (id: string) => Promise<void>;
+
+  getContact: (
+    id: string,
+  ) => (Contact & { id: string; initial?: string }) | undefined;
+};
+
+const ContactsContext = createContext<ContactsContextType | undefined>(
+  undefined,
+);
 
 export function ContactsProvider({ children }: { children: React.ReactNode }) {
-  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
+  // Get JWT from AuthContext
+  const { token } = useAuth();
 
-  function addContact(contact: Omit<Contact, 'id' | 'initial'>) {
-    const newContact: Contact = {
-      ...contact,
-      id: Date.now().toString(),
-      initial: contact.name[0]?.toUpperCase() ?? '?',
-    };
-    setContacts((prev) => [...prev, newContact]);
+  const [contacts, setContacts] = useState<
+    (Contact & { id: string; initial?: string })[]
+  >([]);
+
+  const [loading, setLoading] = useState(false);
+
+  // =========================
+  // GET ALL CONTACTS
+  // =========================
+
+  async function fetchContacts() {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+
+      const response = await getEmergencyContacts(token);
+
+      if (response.success) {
+        const formattedContacts = response.contacts.map((contact: any) => ({
+          ...contact,
+
+          id: contact._id,
+
+          initial: contact.name?.[0]?.toUpperCase() ?? "?",
+        }));
+
+        setContacts(formattedContacts);
+      }
+    } catch (error) {
+      console.log("Fetch contacts error:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function updateContact(id: string, contact: Omit<Contact, 'id' | 'initial'>) {
-    setContacts((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? { ...c, ...contact, initial: contact.name[0]?.toUpperCase() ?? '?' }
-          : c,
-      ),
-    );
+  // =========================
+  // ADD CONTACT
+  // =========================
+
+  async function addContact(contact: ContactInput) {
+    if (!token) return;
+
+    try {
+      const response = await createEmergencyContact(token, contact);
+
+      if (response.success) {
+        const newContact = {
+          ...response.contact,
+
+          id: response.contact._id,
+
+          initial: response.contact.name?.[0]?.toUpperCase() ?? "?",
+        };
+
+        setContacts((prev) => [...prev, newContact]);
+      }
+    } catch (error) {
+      console.log("Add contact error:", error);
+    }
   }
 
-  function deleteContact(id: string) {
-    setContacts((prev) => prev.filter((c) => c.id !== id));
+  // =========================
+  // UPDATE CONTACT
+  // =========================
+
+  async function updateContact(id: string, contact: ContactInput) {
+    if (!token) return;
+
+    try {
+      const response = await updateEmergencyContact(token, id, contact);
+
+      if (response.success) {
+        const updated = {
+          ...response.contact,
+
+          id: response.contact._id,
+
+          initial: response.contact.name?.[0]?.toUpperCase() ?? "?",
+        };
+
+        setContacts((prev) =>
+          prev.map((item) => (item.id === id ? updated : item)),
+        );
+      }
+    } catch (error) {
+      console.log("Update contact error:", error);
+    }
   }
+
+  // =========================
+  // DELETE CONTACT
+  // =========================
+
+  async function deleteContact(id: string) {
+    if (!token) return;
+
+    try {
+      const response = await deleteEmergencyContact(token, id);
+
+      if (response.success) {
+        setContacts((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (error) {
+      console.log("Delete contact error:", error);
+    }
+  }
+
+  // =========================
+  // GET SINGLE CONTACT
+  // =========================
 
   function getContact(id: string) {
-    return contacts.find((c) => c.id === id);
+    return contacts.find((contact) => contact.id === id);
   }
 
   return (
     <ContactsContext.Provider
-      value={{ contacts, addContact, updateContact, deleteContact, getContact }}
+      value={{
+        contacts,
+
+        loading,
+
+        fetchContacts,
+
+        addContact,
+
+        updateContact,
+
+        deleteContact,
+
+        getContact,
+      }}
     >
       {children}
     </ContactsContext.Provider>
@@ -80,7 +184,11 @@ export function ContactsProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useContacts() {
-  const ctx = useContext(ContactsContext);
-  if (!ctx) throw new Error('useContacts must be used within a ContactsProvider');
-  return ctx;
+  const context = useContext(ContactsContext);
+
+  if (!context) {
+    throw new Error("useContacts must be used inside ContactsProvider");
+  }
+
+  return context;
 }

@@ -1,6 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+
+import React, { useEffect, useState } from "react";
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,122 +12,157 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useContacts } from '../contexts/ContactsContext';
+} from "react-native";
 
-const RELATIONSHIPS = ['Family', 'Friend', 'Colleague', 'Other'];
+import { useContacts } from "../contexts/ContactsContext";
+
+const RELATIONSHIPS = ["Family", "Friend", "Colleague", "Other"];
 
 export default function AddContact() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const { getContact, addContact, updateContact, deleteContact } = useContacts();
+  const { id } = useLocalSearchParams<{
+    id?: string;
+  }>();
+
+  const {
+    getContact,
+
+    addContact,
+
+    updateContact,
+
+    deleteContact,
+  } = useContacts();
+
   const isEditing = !!id;
 
-  const [name, setName] = useState('');
-  const [relationship, setRelationship] = useState('Family');
-  const [phone, setPhone] = useState('');
+  const [name, setName] = useState("");
+
+  const [email, setEmail] = useState("");
+
+  const [phone, setPhone] = useState("");
+
+  const [relationship, setRelationship] = useState("Family");
 
   useEffect(() => {
     if (id) {
       const existing = getContact(id);
+
       if (existing) {
         setName(existing.name);
-        setRelationship(existing.relation);
+
+        setEmail(existing.email);
+
         setPhone(existing.phone);
+
+        setRelationship(existing.relationship);
       }
     }
   }, [id]);
 
-  function handleSave() {
-    if (!name.trim()) return;
+  async function handleSave() {
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      return;
+    }
 
     const payload = {
       name,
-      relation: relationship,
+
+      email,
+
       phone,
-      trusted: isEditing ? getContact(id!)?.trusted ?? false : false,
+
+      relationship,
     };
 
     if (isEditing) {
-      updateContact(id!, payload);
+      await updateContact(id!, payload);
     } else {
-      addContact(payload);
+      await addContact(payload);
     }
+
     router.back();
   }
 
   function handleDelete() {
     if (!id) return;
+
     deleteContact(id);
+
     router.back();
   }
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
           <Ionicons name="arrow-back" size={22} color="#091426" />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Nirvaya</Text>
+
         <View style={styles.iconBtn} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>
-          {isEditing ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
+          {isEditing ? "Edit Emergency Contact" : "Add Emergency Contact"}
         </Text>
+
         <Text style={styles.subtitle}>
-          Add a trusted person to notify during an emergency. They will receive SMS alerts.
+          Add a trusted person to notify during an emergency.
         </Text>
 
         <Text style={styles.label}>Contact Name</Text>
-        <View style={styles.inputRow}>
-          <Ionicons name="person-outline" size={18} color="#6b7280" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="e.g. Jane Doe"
-            placeholderTextColor="#9aa0ac"
-          />
-        </View>
+
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Jane Doe"
+        />
+
+        <Text style={styles.label}>Email Address</Text>
+
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="example@gmail.com"
+          keyboardType="email-address"
+        />
 
         <Text style={styles.label}>Relationship</Text>
+
         <View style={styles.chipRow}>
-          {RELATIONSHIPS.map((option) => {
-            const selected = relationship === option;
-            return (
-              <TouchableOpacity
-                key={option}
-                style={[styles.chip, selected && styles.chipSelected]}
-                onPress={() => setRelationship(option)}
-              >
-                <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          {RELATIONSHIPS.map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={[
+                styles.chip,
+
+                relationship === option && styles.chipSelected,
+              ]}
+              onPress={() => setRelationship(option)}
+            >
+              <Text>{option}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <Text style={styles.label}>Phone Number</Text>
-        <View style={styles.inputRow}>
-          <Ionicons name="call-outline" size={18} color="#6b7280" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="(555) 000-0000"
-            placeholderTextColor="#9aa0ac"
-            keyboardType="phone-pad"
-          />
-        </View>
-        <Text style={styles.helperText}>Make sure to include country code if applicable.</Text>
+
+        <TextInput
+          style={styles.input}
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="9800000000"
+          keyboardType="phone-pad"
+        />
 
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-          <Ionicons name="checkmark-done-outline" size={18} color="#fff" />
           <Text style={styles.saveBtnText}>Save Contact</Text>
         </TouchableOpacity>
 
@@ -140,56 +177,95 @@ export default function AddContact() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9ff' },
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f9ff",
+  },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     height: 56,
-    paddingHorizontal: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#091426' },
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 48 },
-  title: { fontSize: 26, fontWeight: '800', color: '#0d1c2f' },
-  subtitle: { fontSize: 15, color: '#6b7280', marginTop: 8, lineHeight: 21 },
-  label: { fontSize: 14, fontWeight: '700', color: '#0d1c2f', marginTop: 24, marginBottom: 8 },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e2e5ee',
-    borderRadius: 12,
-    paddingHorizontal: 14,
+
+  iconBtn: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+
+  content: {
+    padding: 20,
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: "800",
+  },
+
+  subtitle: {
+    marginTop: 8,
+    color: "#6b7280",
+  },
+
+  label: {
+    marginTop: 20,
+    fontWeight: "700",
+  },
+
+  input: {
+    backgroundColor: "#fff",
     height: 50,
-  },
-  inputIcon: { marginRight: 8 },
-  input: { flex: 1, fontSize: 15, color: '#0d1c2f' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  chip: {
-    borderWidth: 1,
-    borderColor: '#e2e5ee',
-    backgroundColor: '#fff',
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-  },
-  chipSelected: { backgroundColor: '#86f2e4', borderColor: '#86f2e4' },
-  chipText: { fontSize: 14, color: '#45474c', fontWeight: '600' },
-  chipTextSelected: { color: '#006f66' },
-  helperText: { fontSize: 12, color: '#9aa0ac', marginTop: 6 },
-  saveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#0f6e4f',
     borderRadius: 12,
-    height: 52,
-    marginTop: 32,
+    paddingHorizontal: 15,
+    marginTop: 8,
   },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  deleteBtn: { alignItems: 'center', marginTop: 16, paddingVertical: 10 },
-  deleteBtnText: { color: '#ba1a1a', fontWeight: '600', fontSize: 14 },
+
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 8,
+  },
+
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+  },
+
+  chipSelected: {
+    backgroundColor: "#86f2e4",
+  },
+
+  saveBtn: {
+    marginTop: 30,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: "#0f6e4f",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+
+  deleteBtn: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+
+  deleteBtnText: {
+    color: "red",
+  },
 });

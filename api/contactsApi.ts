@@ -1,5 +1,5 @@
 // TODO: replace with your real backend base URL
-export const API_BASE_URL = "http://10.174.110.101:5000/api";
+export const API_BASE_URL = "http://192.168.1.144:5000/api";
 
 export type SosResponse = {
   success: boolean;
@@ -22,6 +22,7 @@ export async function createEmergencyContact(
   token: string,
   data: {
     name: string;
+    email: string;
     phone: string;
     relationship: string;
   },
@@ -43,6 +44,7 @@ export async function updateEmergencyContact(
   id: string,
   data: {
     name: string;
+    email: string;
     phone: string;
     relationship: string;
   },
@@ -65,22 +67,6 @@ export async function deleteEmergencyContact(token: string, id: string) {
     headers: {
       Authorization: `Bearer ${token}`,
     },
-  });
-
-  return response.json();
-}
-
-// Auth APIs
-export async function loginUser(email: string, password: string) {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
   });
 
   return response.json();

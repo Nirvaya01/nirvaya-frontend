@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://10.174.110.101:5000/api";
+export const API_BASE_URL = "http://192.168.1.144:5000/api";
 
 export interface SOSResponse {
   success: boolean;
