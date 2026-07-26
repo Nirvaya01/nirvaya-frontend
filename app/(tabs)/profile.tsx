@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+
 import {
   Dimensions,
   Image,
@@ -11,19 +12,10 @@ import {
 } from "react-native";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+
 import { router } from "expo-router";
 
-// Try to import useAuth from the project's AuthContext. If the module
-// doesn't exist (e.g. different path or not yet created), fall back to a
-// no-op implementation to avoid build-time import errors.
-let useAuth: () => { logout: () => Promise<void> };
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const mod = require("../Context/AuthContext");
-  useAuth = mod.useAuth || (() => ({ logout: async () => {} }));
-} catch (err) {
-  useAuth = () => ({ logout: async () => {} });
-}
+import { useAuth } from "../../Context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -37,14 +29,6 @@ const COLORS = {
   textSecondary: "#45474C",
   border: "#C5C6CD",
   surfaceVariant: "#D5E3FD",
-  safeZone: "#86F2E4",
-  shadow: "rgba(30,41,59,0.08)",
-};
-
-const profile = {
-  name: "Sarah Jenkins",
-  email: "sarah@example.com",
-  avatar: "https://randomuser.me/api/portraits/women/68.jpg",
 };
 
 interface RowProps {
@@ -91,7 +75,29 @@ const SettingsRow = ({
 };
 
 export default function Profile() {
-  const { logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+
+  const profileImage =
+    (user as { profilePicture?: string })?.profilePicture ??
+    "https://randomuser.me/api/portraits/women/68.jpg";
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+
+      await refreshProfile();
+    } catch (error) {
+      console.log("Profile loading error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -111,10 +117,10 @@ export default function Profile() {
           paddingBottom: 40,
         }}
       >
-        {/* Top App Bar */}
+        {/* TOP BAR */}
 
         <View style={styles.topBar}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
           </TouchableOpacity>
 
@@ -125,30 +131,35 @@ export default function Profile() {
           </TouchableOpacity>
         </View>
 
-        {/* Profile Card */}
+        {/* PROFILE CARD */}
 
         <View style={styles.profileCard}>
           <View style={styles.profileBackground} />
 
           <Image
             source={{
-              uri: profile.avatar,
+              uri: (user as any)?.profilePicture
+                ? (user as any).profilePicture
+                : "https://randomuser.me/api/portraits/women/68.jpg",
             }}
             style={styles.avatar}
           />
 
-          <Text style={styles.name}>{profile.name}</Text>
+          <Text style={styles.name}>{(user as any)?.name ?? "User"}</Text>
 
-          <Text style={styles.email}>{profile.email}</Text>
+          <Text style={styles.email}>{(user as any)?.email ?? ""}</Text>
 
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => router.push("/editprofile")}
+          >
             <MaterialIcons name="edit" color="white" size={18} />
 
             <Text style={styles.editText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Safety Core Card */}
+        {/* SAFETY CORE */}
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>SAFETY CORE</Text>
@@ -171,7 +182,8 @@ export default function Profile() {
             iconColor="#006A61"
           />
         </View>
-        {/* Security Card */}
+
+        {/* SECURITY */}
 
         <View style={styles.card}>
           <SettingsRow
@@ -183,7 +195,7 @@ export default function Profile() {
           />
         </View>
 
-        {/* Logout Card */}
+        {/* LOGOUT */}
 
         <TouchableOpacity
           activeOpacity={0.9}
@@ -199,14 +211,11 @@ export default function Profile() {
           </View>
         </TouchableOpacity>
 
-        {/* Version */}
-
         <Text style={styles.version}>Nirvaya Version 2.4.1</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -350,6 +359,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
     marginLeft: 80,
   },
+
   logoutCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: 20,

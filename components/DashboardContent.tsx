@@ -14,6 +14,7 @@ import {
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
+import { useAuth } from "../Context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -40,6 +41,11 @@ interface SafeZone {
   id: string;
   name: string;
   active: boolean;
+}
+
+interface UserProfile {
+  name?: string;
+  profilePicture?: string;
 }
 
 const contacts: Contact[] = [
@@ -80,17 +86,24 @@ const DashboardCard = ({ title, icon, children, onPress }: CardProps) => {
 };
 
 const GreetingHeader = () => {
+  const { user } = useAuth();
+  const userData = user as UserProfile | undefined;
+
+  const avatarUri =
+    userData?.profilePicture ||
+    "https://randomuser.me/api/portraits/women/68.jpg";
+
   return (
     <View style={styles.headerContainer}>
       <Image
         source={{
-          uri: "https://randomuser.me/api/portraits/women/68.jpg",
+          uri: avatarUri,
         }}
         style={styles.avatar}
       />
 
       <View style={{ flex: 1 }}>
-        <Text style={styles.greeting}>Hello, Sarah.</Text>
+        <Text style={styles.greeting}>Hello, {userData?.name || "User"}.</Text>
 
         <View style={styles.statusRow}>
           <View style={styles.safeDot} />

@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 import { loginUser, signupUser, User } from "../api/authApi";
+import { getProfile } from "../api/profileApi";
 
 type AuthContextType = {
   user: User | null;
@@ -17,6 +18,8 @@ type AuthContextType = {
   signup: (name: string, email: string, password: string) => Promise<boolean>;
 
   logout: () => Promise<void>;
+
+  refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,6 +53,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(JSON.parse(savedUser));
 
         setIsLoggedIn(true);
+
+        // Get latest user data from backend
+        const profile = await getProfile(savedToken);
+
+        const updatedUser = {
+          _id: profile.id,
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          gender: profile.gender,
+          dob: profile.dob,
+          profilePicture: profile.profilePicture,
+        };
+
+        setUser(updatedUser);
+
+        await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
       }
     } catch (error) {
       console.log("Auth restore error:", error);
@@ -57,7 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   };
-
   // =========================
   // LOGIN
   // =========================
@@ -110,6 +129,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshProfile = async () => {
+    try {
+      if (!token) return;
+
+      const profile = await getProfile(token);
+
+      console.log("PROFILE FROM API:", profile);
+
+      const updatedUser = {
+        _id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        gender: profile.gender,
+        dob: profile.dob,
+        profilePicture: profile.profilePicture,
+      };
+
+      setUser(updatedUser);
+
+      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+    } catch (error) {
+      console.log("Refresh profile error:", error);
+    }
+  };
+
   // =========================
   // LOGOUT
   // =========================
@@ -140,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
 
         logout,
+        refreshProfile,
       }}
     >
       {children}
