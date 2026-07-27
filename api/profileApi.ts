@@ -1,77 +1,71 @@
 const BASE_URL = "http://192.168.1.68:5000/api";
 
-export interface UserProfile {
+export interface ProfileResponse {
   id: string;
-  fullName: string;
+  name: string;
   email: string;
-  phone?: string;
-  profilePicture?: string;
-  dob?: string;
-  gender?: string;
-  createdAt: string;
-  updatedAt: string;
+  phone: string;
+  gender: string;
+  dob: string | null;
+  profilePicture: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-let AUTH_TOKEN = "";
+// =========================
+// GET PROFILE
+// =========================
 
-export function setAuthToken(token: string) {
-  AUTH_TOKEN = token;
-}
-
-export async function loginAndGetToken(
-  email: string,
-  password: string,
-): Promise<string> {
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+export async function getProfile(token: string): Promise<ProfileResponse> {
+  const response = await fetch(`${API_BASE_URL}/profile`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || "Login failed");
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.log("Profile fetch error:", data);
+
+    throw new Error(data.message || "Failed to fetch profile");
   }
 
-  const data = await res.json();
-  AUTH_TOKEN = data.token;
-  return data.token;
+  return data.user || data;
 }
-
-export async function getProfile(): Promise<UserProfile> {
-  const res = await fetch(`${BASE_URL}/api/profile`, {
-    headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
-  });
-
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || "Failed to load profile");
-  }
-
-  return res.json();
-}
+// =========================
+// UPDATE PROFILE
+// =========================
 
 export async function updateProfile(
-  updates: Partial<
-    Pick<
-      UserProfile,
-      "fullName" | "phone" | "profilePicture" | "dob" | "gender"
-    >
-  >,
-): Promise<UserProfile> {
-  const res = await fetch(`${BASE_URL}/api/profile`, {
+  token: string,
+  profile: {
+    name?: string;
+    phone?: string;
+    gender?: string;
+    dob?: string;
+    profilePicture?: string;
+  },
+): Promise<ProfileResponse> {
+  const response = await fetch(`${API_BASE_URL}/profile`, {
     method: "PATCH",
+
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${AUTH_TOKEN}`,
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(updates),
+
+    body: JSON.stringify(profile),
   });
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.message || "Failed to update profile");
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.log("Profile update error:", data);
+
+    throw new Error(data.message || "Failed to update profile");
   }
 
-  return res.json();
+  return data.user || data;
 }

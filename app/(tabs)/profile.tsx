@@ -1,5 +1,6 @@
 import { useFocusEffect } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+
 import {
   Dimensions,
   Image,
@@ -15,22 +16,24 @@ import { useTheme } from "../../Context/ThemeContext";
 import { getProfile } from "../../utils/profileStorage";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+
 import { router } from "expo-router";
 
-// Try to import useAuth from the project's AuthContext. If the module
-// doesn't exist (e.g. different path or not yet created), fall back to a
-// no-op implementation to avoid build-time import errors.
-let useAuth: () => { logout: () => Promise<void> };
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const mod = require("../../Context/AuthContext");
-  useAuth = mod.useAuth || (() => ({ logout: async () => {} }));
-} catch (err) {
-  useAuth = () => ({ logout: async () => {} });
-}
+import { useAuth } from "../../Context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
+const COLORS = {
+  primary: "#091426",
+  secondary: "#006A61",
+  background: "#F8F9FF",
+  white: "#FFFFFF",
+  error: "#BA1A1A",
+  errorContainer: "#FFDAD6",
+  textSecondary: "#45474C",
+  border: "#C5C6CD",
+  surfaceVariant: "#D5E3FD",
+};
 
 interface RowProps {
   title: string;
@@ -78,53 +81,29 @@ const SettingsRow = ({
 };
 
 export default function Profile() {
-  const { logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
-  console.log("Dark Mode:", isDark);
-  
-  const COLORS = {
-  primary: isDark ? "#FFFFFF" : "#091426",
-  secondary: isDark ? "#86F2E4" : "#006A61",
-  background: isDark ? "#121212" : "#F8F9FF",
-  white: isDark ? "#1E1E1E" : "#FFFFFF",
-  error: "#BA1A1A",
-  errorContainer: "#FFDAD6",
-  textSecondary: isDark ? "#AAAAAA" : "#45474C",
-  border: isDark ? "#333333" : "#C5C6CD",
-  surfaceVariant: isDark ? "#333333" : "#D5E3FD",
-  safeZone: "#86F2E4",
-  shadow: "rgba(30,41,59,0.08)",
-};
-const styles = createStyles(COLORS);
-  const [profile, setProfile] = useState({
-  name: "Sarah Jenkins",
-  email: "sarah@example.com",
-  phone: "",
-  address: "",
-  avatar: "",
-});
+  const { user, logout, refreshProfile } = useAuth();
 
+  const [loading, setLoading] = useState(false);
 
+  const profileImage =
+    (user as { profilePicture?: string })?.profilePicture ??
+    "https://randomuser.me/api/portraits/women/68.jpg";
 
-useFocusEffect(
-  useCallback(() => {
-    const loadProfile = async () => {
-      const data = await getProfile();
-
-      if (data) {
-        setProfile({
-          name: data.name || "Sarah Jenkins",
-          email: data.email || "sarah@example.com",
-          phone: data.phone || "",
-          address: data.address || "",
-         avatar: data.image ?? "",
-        });
-      }
-    };
-
+  useEffect(() => {
     loadProfile();
-  }, [])
-);
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+
+      await refreshProfile();
+    } catch (error) {
+      console.log("Profile loading error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -144,11 +123,11 @@ useFocusEffect(
           paddingBottom: 40,
         }}
       >
-        {/* Top App Bar */}
+        {/* TOP BAR */}
 
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
           </TouchableOpacity>
 
           <Text style={styles.logo}>Nirvaya</Text>
@@ -165,40 +144,35 @@ useFocusEffect(
 </TouchableOpacity>
         </View>
 
-        {/* Profile Card */}
+        {/* PROFILE CARD */}
 
         <View style={styles.profileCard}>
           <View style={styles.profileBackground} />
 
           <Image
-  source={{
-    uri:
-      profile.avatar ||
-      "https://i.pravatar.cc/300",
-  }}
-  style={styles.avatar}
-/>
+            source={{
+              uri: (user as any)?.profilePicture
+                ? (user as any).profilePicture
+                : "https://randomuser.me/api/portraits/women/68.jpg",
+            }}
+            style={styles.avatar}
+          />
 
-         <Text style={styles.name}>
-  {profile.name || "Your Name"}
-</Text>
+          <Text style={styles.name}>{(user as any)?.name ?? "User"}</Text>
 
-          <Text style={styles.email}>
-  {profile.email || "your@email.com"}
-</Text>
+          <Text style={styles.email}>{(user as any)?.email ?? ""}</Text>
 
           <TouchableOpacity
-  style={styles.editButton}
-  onPress={() => router.push("/edit-profile")}
->
+            style={styles.editButton}
+            onPress={() => router.push("/editprofile")}
+          >
             <MaterialIcons name="edit" color="white" size={18} />
 
             <Text style={styles.editText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Safety Core Card */}
-        <View style={[styles.card, {backgroundColor: COLORS.white}]}>
+        {/* SAFETY CORE */}
 
           <Text style={styles.sectionTitle}>SAFETY CORE</Text>
 
@@ -222,7 +196,8 @@ useFocusEffect(
             styles={styles}
           />
         </View>
-        {/* Security Card */}
+
+        {/* SECURITY */}
 
         <View style={styles.card}>
           <SettingsRow
@@ -284,7 +259,7 @@ useFocusEffect(
 
 </View>
 
-        {/* Logout Card */}
+        {/* LOGOUT */}
 
         <TouchableOpacity
           activeOpacity={0.9}
@@ -300,16 +275,12 @@ useFocusEffect(
           </View>
         </TouchableOpacity>
 
-        {/* Version */}
-
         <Text style={styles.version}>Nirvaya Version 2.4.1</Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const createStyles = (COLORS: any) =>
-  StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -463,6 +434,7 @@ const createStyles = (COLORS: any) =>
     backgroundColor: COLORS.border,
     marginLeft: 80,
   },
+
   logoutCard: {
     backgroundColor: COLORS.white,
     marginHorizontal: 20,
