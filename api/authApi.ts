@@ -1,4 +1,5 @@
-export const API_BASE_URL = "http://10.45.75.100:5000/api";
+import { API_BASE_URL } from "./baseUrl";
+import { requestJson } from "./requestJson";
 
 // USER TYPE
 export interface User {
@@ -31,25 +32,17 @@ export async function signupUser(
   email: string,
   password: string,
 ): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  return requestJson<AuthResponse>(`${API_BASE_URL}/auth/register`, {
     method: "POST",
-
     headers: {
       "Content-Type": "application/json",
     },
-
     body: JSON.stringify({
       name,
       email,
       password,
     }),
   });
-
-  const data = await response.json();
-
-  console.log("Signup Response:", data);
-
-  return data;
 }
 
 // LOGIN API
@@ -59,22 +52,16 @@ export async function loginUser(
   email: string,
   password: string,
 ): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  return requestJson<AuthResponse>(`${API_BASE_URL}/auth/login`, {
     method: "POST",
-
     headers: {
       "Content-Type": "application/json",
     },
-
     body: JSON.stringify({
       email,
       password,
     }),
   });
-
-  const data = await response.json();
-
-  return data;
 }
 
 // GET CURRENT USER
@@ -82,17 +69,12 @@ export async function loginUser(
 // Protected Route
 
 export async function getMe(token: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+  return requestJson<AuthResponse>(`${API_BASE_URL}/auth/me`, {
     method: "GET",
-
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-
-  const data = await response.json();
-
-  return data;
 }
 
 // TEST AUTH
@@ -100,15 +82,10 @@ export async function getMe(token: string): Promise<AuthResponse> {
 // Protected Route
 
 export async function testAuth(token: string): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/test`, {
+  return requestJson<AuthResponse>(`${API_BASE_URL}/auth/test`, {
     method: "GET",
-
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-
-  const data = await response.json();
-
-  return data;
 }

@@ -145,7 +145,8 @@ export default function Login() {
 
         <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
           <Text style={styles.link}>
-            Don't have an account? <Text style={styles.linkBold}>Sign Up</Text>
+            Don&apos;t have an account?{" "}
+            <Text style={styles.linkBold}>Sign Up</Text>
           </Text>
         </TouchableOpacity>
       </View>

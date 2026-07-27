@@ -1,5 +1,4 @@
-// TODO: replace with your real backend base URL
-export const API_BASE_URL = "http://10.45.75.100:5000/api";
+import { API_BASE_URL } from "./baseUrl";
 
 export type SosResponse = {
   success: boolean;
