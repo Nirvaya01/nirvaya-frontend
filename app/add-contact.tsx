@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-import { useContacts } from "../contexts/ContactsContext";
+import { useContacts } from "../Contexts/ContactsContext";
 
 const RELATIONSHIPS = ["Family", "Friend", "Colleague", "Other"];
 
@@ -60,36 +60,46 @@ export default function AddContact() {
   }, [id]);
 
   async function handleSave() {
-    if (!name.trim() || !email.trim() || !phone.trim()) {
-      return;
-    }
+  if (!name.trim() || !email.trim() || !phone.trim()) {
+    console.log("Validation failed");
+    return;
+  }
 
-    const payload = {
-      name,
+  const payload = {
+    name,
+    email,
+    phone,
+    relationship,
+  };
 
-      email,
+  console.log("Saving contact...");
+  console.log("Payload:", payload);
 
-      phone,
-
-      relationship,
-    };
-
+  try {
     if (isEditing) {
       await updateContact(id!, payload);
+      console.log("Contact updated");
     } else {
       await addContact(payload);
+      console.log("Contact added");
     }
 
     router.back();
+  } catch (error) {
+    console.log("Save Error:", error);
   }
+}
 
-  function handleDelete() {
-    if (!id) return;
+async function handleDelete() {
+  if (!id) return;
 
-    deleteContact(id);
-
+  try {
+    await deleteContact(id);
     router.back();
+  } catch (error) {
+    console.log("Delete Error:", error);
   }
+}
 
   return (
     <KeyboardAvoidingView

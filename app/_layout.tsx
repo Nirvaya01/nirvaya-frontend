@@ -1,6 +1,8 @@
-import { ContactsProvider } from "@/contexts/ContactsContext";
+import { ThemeProvider } from "@/Context/ThemeContext";
+import { ContactsProvider } from "@/Contexts/ContactsContext";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "../Context/AuthContext";
 
 function RootLayoutNav() {
@@ -32,10 +34,14 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
+   <SafeAreaProvider>
+  <AuthProvider>
+    <ThemeProvider>
       <ContactsProvider>
         <RootLayoutNav />
       </ContactsProvider>
-    </AuthProvider>
+    </ThemeProvider>
+  </AuthProvider>
+</SafeAreaProvider>
   );
 }

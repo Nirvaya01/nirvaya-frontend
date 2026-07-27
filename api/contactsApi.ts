@@ -26,6 +26,10 @@ export async function createEmergencyContact(
     relationship: string;
   },
 ) {
+  console.log("Creating contact...");
+  console.log("API URL:", `${API_BASE_URL}/emergency-contacts`);
+  console.log("Data:", data);
+
   const response = await fetch(`${API_BASE_URL}/emergency-contacts`, {
     method: "POST",
     headers: {
@@ -35,7 +39,11 @@ export async function createEmergencyContact(
     body: JSON.stringify(data),
   });
 
-  return response.json();
+  const result = await response.json();
+
+  console.log("Response:", result);
+
+  return result;
 }
 
 export async function updateEmergencyContact(

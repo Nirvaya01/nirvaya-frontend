@@ -34,6 +34,8 @@ export default function Signup() {
 
   const [loading, setLoading] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleSignup = async () => {
     if (!name || !email || !password) {
       Alert.alert("Missing fields", "Please fill all fields.");
@@ -130,22 +132,30 @@ export default function Signup() {
         <Text style={styles.label}>Password</Text>
 
         <View style={styles.inputWrapper}>
-          <Ionicons
-            name="lock-closed-outline"
-            size={20}
-            color={COLORS.placeholder}
-            style={styles.icon}
-          />
+  <Ionicons
+    name="lock-closed-outline"
+    size={20}
+    color={COLORS.placeholder}
+    style={styles.icon}
+  />
 
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor={COLORS.placeholder}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+  <TextInput
+    style={styles.input}
+    placeholder="••••••••"
+    placeholderTextColor={COLORS.placeholder}
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!showPassword}
+  />
+
+  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+    <Ionicons
+      name={showPassword ? "eye-off-outline" : "eye-outline"}
+      size={20}
+      color={COLORS.placeholder}
+    />
+  </TouchableOpacity>
+</View>
 
         <View style={styles.secureRow}>
           <Ionicons
