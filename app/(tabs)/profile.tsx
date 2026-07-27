@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useEffect, useState, useCallback } from "react";
 
 import {
   Dimensions,
@@ -6,10 +7,13 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTheme } from "../../Context/ThemeContext";
+import { getProfile } from "../../utils/profileStorage";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 
@@ -38,6 +42,7 @@ interface RowProps {
   iconBackground: string;
   iconColor: string;
   onPress?: () => void;
+  styles: any;
 }
 
 const SettingsRow = ({
@@ -47,6 +52,7 @@ const SettingsRow = ({
   iconBackground,
   iconColor,
   onPress,
+  styles
 }: RowProps) => {
   return (
     <TouchableOpacity activeOpacity={0.85} style={styles.row} onPress={onPress}>
@@ -110,7 +116,7 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, {backgroundColor: COLORS.background}]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -126,9 +132,16 @@ export default function Profile() {
 
           <Text style={styles.logo}>Nirvaya</Text>
 
-          <TouchableOpacity>
-            <Feather name="settings" size={22} color={COLORS.primary} />
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.iconButton}
+  onPress={() => router.push("/settings")}
+>
+  <Feather
+    name="settings"
+    size={19}
+    color={COLORS.primary}
+  />
+</TouchableOpacity>
         </View>
 
         {/* PROFILE CARD */}
@@ -161,7 +174,6 @@ export default function Profile() {
 
         {/* SAFETY CORE */}
 
-        <View style={styles.card}>
           <Text style={styles.sectionTitle}>SAFETY CORE</Text>
 
           <SettingsRow
@@ -170,6 +182,7 @@ export default function Profile() {
             icon="health-and-safety"
             iconBackground="#FFDAD6"
             iconColor="#BA1A1A"
+            styles={styles}
           />
 
           <View style={styles.divider} />
@@ -180,6 +193,7 @@ export default function Profile() {
             icon="my-location"
             iconBackground="#86F2E4"
             iconColor="#006A61"
+            styles={styles}
           />
         </View>
 
@@ -192,8 +206,58 @@ export default function Profile() {
             icon="lock"
             iconBackground="#D5E3FD"
             iconColor={COLORS.primary}
+            styles={styles}
           />
         </View>
+        {/* Appearance Card */}
+
+<View style={styles.card}>
+
+  <View style={styles.row}>
+
+    <View style={styles.rowLeft}>
+
+      <View
+        style={[
+          styles.iconCircle,
+          {
+            backgroundColor: "#D5E3FD",
+          },
+        ]}
+      >
+        <Ionicons
+          name="moon"
+          size={22}
+          color={COLORS.primary}
+        />
+      </View>
+
+      <View>
+        <Text style={styles.rowTitle}>
+          Dark Mode
+        </Text>
+
+        <Text style={styles.rowSubtitle}>
+          Switch between dark and bright mode
+        </Text>
+      </View>
+
+    </View>
+
+
+    <Switch
+  value={isDark}
+  onValueChange={toggleTheme}
+  trackColor={{
+    false: "#767577",
+    true: COLORS.secondary,
+  }}
+  thumbColor={isDark ? "#FFFFFF" : "#f4f3f4"}
+/>
+
+  </View>
+
+</View>
 
         {/* LOGOUT */}
 
@@ -219,23 +283,34 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
 
   topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 15,
-    paddingBottom: 10,
+    paddingBottom: 14,
+   backgroundColor: COLORS.surfaceVariant,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
 
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#EEF1F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   logo: {
     fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
   },
+
 
   profileCard: {
     marginHorizontal: 20,
@@ -279,16 +354,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
+ editButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: 20,
+  backgroundColor: COLORS.secondary,
+  paddingHorizontal: 28,
+  paddingVertical: 12,
+  borderRadius: 12,
+},
 
   editText: {
     color: COLORS.white,

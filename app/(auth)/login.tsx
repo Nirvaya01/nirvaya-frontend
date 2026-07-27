@@ -32,6 +32,8 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Missing fields", "Please enter both email and password.");
@@ -102,22 +104,30 @@ export default function Login() {
         <Text style={styles.label}>Password</Text>
 
         <View style={styles.inputWrapper}>
-          <Ionicons
-            name="lock-closed-outline"
-            size={20}
-            color={COLORS.placeholder}
-            style={styles.icon}
-          />
+  <Ionicons
+    name="lock-closed-outline"
+    size={20}
+    color={COLORS.placeholder}
+    style={styles.icon}
+  />
 
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor={COLORS.placeholder}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+  <TextInput
+    style={styles.input}
+    placeholder="••••••••"
+    placeholderTextColor={COLORS.placeholder}
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!showPassword}
+  />
+
+  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+    <Ionicons
+      name={showPassword ? "eye-off-outline" : "eye-outline"}
+      size={20}
+      color={COLORS.placeholder}
+    />
+  </TouchableOpacity>
+</View>
 
         <View style={styles.secureRow}>
           <Ionicons
