@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+
 import {
   Dimensions,
   Image,
@@ -11,7 +12,10 @@ import {
 } from "react-native";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useAuth } from "../Context/AuthContext";
+
+import { router } from "expo-router";
+
+import { useAuth } from "../../Context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -25,14 +29,6 @@ const COLORS = {
   textSecondary: "#45474C",
   border: "#C5C6CD",
   surfaceVariant: "#D5E3FD",
-  safeZone: "#86F2E4",
-  shadow: "rgba(30,41,59,0.08)",
-};
-
-const profile = {
-  name: "Sarah Jenkins",
-  email: "sarah@example.com",
-  avatar: "https://randomuser.me/api/portraits/women/68.jpg",
 };
 
 interface RowProps {
@@ -53,11 +49,7 @@ const SettingsRow = ({
   onPress,
 }: RowProps) => {
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      style={styles.row}
-      onPress={onPress}
-    >
+    <TouchableOpacity activeOpacity={0.85} style={styles.row} onPress={onPress}>
       <View style={styles.rowLeft}>
         <View
           style={[
@@ -72,6 +64,7 @@ const SettingsRow = ({
 
         <View>
           <Text style={styles.rowTitle}>{title}</Text>
+
           <Text style={styles.rowSubtitle}>{subtitle}</Text>
         </View>
       </View>
@@ -82,15 +75,37 @@ const SettingsRow = ({
 };
 
 export default function Profile() {
-  const { logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+
+  const profileImage =
+    (user as { profilePicture?: string })?.profilePicture ??
+    "https://randomuser.me/api/portraits/women/68.jpg";
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+
+      await refreshProfile();
+    } catch (error) {
+      console.log("Profile loading error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
       await logout();
-      console.log("Logged out successfully");
-      // app/_layout.tsx automatically redirects to login
     } catch (error) {
       console.log("Logout error:", error);
+    } finally {
+      router.replace("/(auth)/login");
     }
   };
 
@@ -102,10 +117,10 @@ export default function Profile() {
           paddingBottom: 40,
         }}
       >
-        {/* Top App Bar */}
+        {/* TOP BAR */}
 
         <View style={styles.topBar}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
           </TouchableOpacity>
 
@@ -116,29 +131,35 @@ export default function Profile() {
           </TouchableOpacity>
         </View>
 
-        {/* Profile Card */}
+        {/* PROFILE CARD */}
 
         <View style={styles.profileCard}>
           <View style={styles.profileBackground} />
 
           <Image
             source={{
-              uri: profile.avatar,
+              uri: (user as any)?.profilePicture
+                ? (user as any).profilePicture
+                : "https://randomuser.me/api/portraits/women/68.jpg",
             }}
             style={styles.avatar}
           />
 
-          <Text style={styles.name}>{profile.name}</Text>
+          <Text style={styles.name}>{(user as any)?.name ?? "User"}</Text>
 
-          <Text style={styles.email}>{profile.email}</Text>
+          <Text style={styles.email}>{(user as any)?.email ?? ""}</Text>
 
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => router.push("/editprofile")}
+          >
             <MaterialIcons name="edit" color="white" size={18} />
+
             <Text style={styles.editText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Safety Core */}
+        {/* SAFETY CORE */}
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>SAFETY CORE</Text>
@@ -162,7 +183,7 @@ export default function Profile() {
           />
         </View>
 
-        {/* Security */}
+        {/* SECURITY */}
 
         <View style={styles.card}>
           <SettingsRow
@@ -174,7 +195,7 @@ export default function Profile() {
           />
         </View>
 
-        {/* Logout */}
+        {/* LOGOUT */}
 
         <TouchableOpacity
           activeOpacity={0.9}
@@ -183,20 +204,14 @@ export default function Profile() {
         >
           <View style={styles.logoutLeft}>
             <View style={styles.logoutIcon}>
-              <MaterialIcons
-                name="logout"
-                size={22}
-                color={COLORS.error}
-              />
+              <MaterialIcons name="logout" size={22} color={COLORS.error} />
             </View>
 
             <Text style={styles.logoutText}>Logout</Text>
           </View>
         </TouchableOpacity>
 
-        <Text style={styles.version}>
-          Nirvaya Version 2.4.1
-        </Text>
+        <Text style={styles.version}>Nirvaya Version 2.4.1</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -208,117 +223,108 @@ const styles = StyleSheet.create({
   },
 
   topBar: {
-    height: 60,
-    width: "100%",
-    paddingHorizontal: 20,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 10,
   },
 
   logo: {
     fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
-    letterSpacing: 0.5,
   },
 
   profileCard: {
     marginHorizontal: 20,
-    marginTop: 15,
+    marginTop: 10,
     backgroundColor: COLORS.white,
-    borderRadius: 24,
-    alignItems: "center",
-    paddingBottom: 25,
+    borderRadius: 22,
     overflow: "hidden",
+    alignItems: "center",
+    paddingBottom: 22,
     elevation: 4,
-    shadowColor: COLORS.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
     shadowRadius: 8,
   },
 
   profileBackground: {
-    height: 90,
     width: "100%",
-    backgroundColor: COLORS.secondary,
-    position: "absolute",
-    top: 0,
+    height: 90,
+    backgroundColor: COLORS.surfaceVariant,
   },
 
   avatar: {
-    height: 100,
     width: 100,
+    height: 100,
     borderRadius: 50,
-    marginTop: 40,
+    marginTop: -50,
     borderWidth: 4,
     borderColor: COLORS.white,
   },
 
   name: {
     marginTop: 15,
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: "700",
     color: COLORS.primary,
   },
 
   email: {
-    marginTop: 5,
-    fontSize: 14,
+    marginTop: 6,
     color: COLORS.textSecondary,
+    fontSize: 16,
   },
 
   editButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 18,
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    borderRadius: 25,
-    gap: 8,
+    marginTop: 20,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
 
   editText: {
     color: COLORS.white,
-    fontWeight: "600",
-    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 8,
+    fontSize: 16,
   },
 
   card: {
     backgroundColor: COLORS.white,
     marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    elevation: 2,
-    shadowColor: COLORS.shadow,
+    marginTop: 22,
+    borderRadius: 18,
+    overflow: "hidden",
+    elevation: 3,
+    shadowColor: "#000",
     shadowOpacity: 0.08,
-    shadowRadius: 5,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowRadius: 8,
   },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: "700",
-    color: COLORS.secondary,
-    marginBottom: 10,
     letterSpacing: 1,
+    color: COLORS.secondary,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 8,
   },
 
   row: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
 
   rowLeft: {
@@ -328,46 +334,45 @@ const styles = StyleSheet.create({
   },
 
   iconCircle: {
-    height: 44,
-    width: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
+    marginRight: 16,
   },
 
   rowTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     color: COLORS.primary,
   },
 
   rowSubtitle: {
-    fontSize: 13,
+    marginTop: 4,
     color: COLORS.textSecondary,
-    marginTop: 3,
+    fontSize: 14,
   },
 
   divider: {
     height: 1,
     backgroundColor: COLORS.border,
-    marginVertical: 5,
+    marginLeft: 80,
   },
 
   logoutCard: {
-    marginHorizontal: 20,
-    marginTop: 20,
     backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 24,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.errorContainer,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     elevation: 2,
-    shadowColor: COLORS.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 5,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
 
   logoutLeft: {
@@ -376,25 +381,27 @@ const styles = StyleSheet.create({
   },
 
   logoutIcon: {
-    height: 44,
-    width: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.errorContainer,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#FFF3F2",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 15,
+    marginRight: 16,
   },
 
   logoutText: {
-    fontSize: 16,
-    fontWeight: "700",
     color: COLORS.error,
+    fontSize: 20,
+    fontWeight: "700",
   },
 
   version: {
     textAlign: "center",
-    marginTop: 25,
-    fontSize: 13,
+    marginTop: 40,
+    marginBottom: 20,
     color: COLORS.textSecondary,
+    opacity: 0.6,
+    fontSize: 13,
   },
 });
