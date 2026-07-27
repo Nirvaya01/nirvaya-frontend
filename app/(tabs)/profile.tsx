@@ -1,5 +1,4 @@
-import { useFocusEffect } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Dimensions,
@@ -13,7 +12,6 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "../../Context/ThemeContext";
-import { getProfile } from "../../utils/profileStorage";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 
@@ -52,7 +50,7 @@ const SettingsRow = ({
   iconBackground,
   iconColor,
   onPress,
-  styles
+  styles,
 }: RowProps) => {
   return (
     <TouchableOpacity activeOpacity={0.85} style={styles.row} onPress={onPress}>
@@ -82,6 +80,7 @@ const SettingsRow = ({
 
 export default function Profile() {
   const { user, logout, refreshProfile } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const [loading, setLoading] = useState(false);
 
@@ -116,7 +115,9 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: COLORS.background}]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: COLORS.background }]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -133,15 +134,11 @@ export default function Profile() {
           <Text style={styles.logo}>Nirvaya</Text>
 
           <TouchableOpacity
-  style={styles.iconButton}
-  onPress={() => router.push("/settings")}
->
-  <Feather
-    name="settings"
-    size={19}
-    color={COLORS.primary}
-  />
-</TouchableOpacity>
+            style={styles.iconButton}
+            onPress={() => router.push("/settings")}
+          >
+            <Feather name="settings" size={19} color={COLORS.primary} />
+          </TouchableOpacity>
         </View>
 
         {/* PROFILE CARD */}
@@ -174,28 +171,27 @@ export default function Profile() {
 
         {/* SAFETY CORE */}
 
-          <Text style={styles.sectionTitle}>SAFETY CORE</Text>
+        <Text style={styles.sectionTitle}>SAFETY CORE</Text>
 
-          <SettingsRow
-            title="Emergency Preferences"
-            subtitle="Notifications, Countdown"
-            icon="health-and-safety"
-            iconBackground="#FFDAD6"
-            iconColor="#BA1A1A"
-            styles={styles}
-          />
+        <SettingsRow
+          title="Emergency Preferences"
+          subtitle="Notifications, Countdown"
+          icon="health-and-safety"
+          iconBackground="#FFDAD6"
+          iconColor="#BA1A1A"
+          styles={styles}
+        />
 
-          <View style={styles.divider} />
+        <View style={styles.divider} />
 
-          <SettingsRow
-            title="Permissions"
-            subtitle="Location & Alerts"
-            icon="my-location"
-            iconBackground="#86F2E4"
-            iconColor="#006A61"
-            styles={styles}
-          />
-        </View>
+        <SettingsRow
+          title="Permissions"
+          subtitle="Location & Alerts"
+          icon="my-location"
+          iconBackground="#86F2E4"
+          iconColor="#006A61"
+          styles={styles}
+        />
 
         {/* SECURITY */}
 
@@ -211,53 +207,40 @@ export default function Profile() {
         </View>
         {/* Appearance Card */}
 
-<View style={styles.card}>
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  {
+                    backgroundColor: "#D5E3FD",
+                  },
+                ]}
+              >
+                <Ionicons name="moon" size={22} color={COLORS.primary} />
+              </View>
 
-  <View style={styles.row}>
+              <View>
+                <Text style={styles.rowTitle}>Dark Mode</Text>
 
-    <View style={styles.rowLeft}>
+                <Text style={styles.rowSubtitle}>
+                  Switch between dark and bright mode
+                </Text>
+              </View>
+            </View>
 
-      <View
-        style={[
-          styles.iconCircle,
-          {
-            backgroundColor: "#D5E3FD",
-          },
-        ]}
-      >
-        <Ionicons
-          name="moon"
-          size={22}
-          color={COLORS.primary}
-        />
-      </View>
-
-      <View>
-        <Text style={styles.rowTitle}>
-          Dark Mode
-        </Text>
-
-        <Text style={styles.rowSubtitle}>
-          Switch between dark and bright mode
-        </Text>
-      </View>
-
-    </View>
-
-
-    <Switch
-  value={isDark}
-  onValueChange={toggleTheme}
-  trackColor={{
-    false: "#767577",
-    true: COLORS.secondary,
-  }}
-  thumbColor={isDark ? "#FFFFFF" : "#f4f3f4"}
-/>
-
-  </View>
-
-</View>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{
+                false: "#767577",
+                true: COLORS.secondary,
+              }}
+              thumbColor={isDark ? "#FFFFFF" : "#f4f3f4"}
+            />
+          </View>
+        </View>
 
         {/* LOGOUT */}
 
@@ -292,7 +275,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 15,
     paddingBottom: 14,
-   backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: COLORS.surfaceVariant,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
@@ -310,7 +293,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.primary,
   },
-
 
   profileCard: {
     marginHorizontal: 20,
@@ -354,16 +336,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
- editButton: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  marginTop: 20,
-  backgroundColor: COLORS.secondary,
-  paddingHorizontal: 28,
-  paddingVertical: 12,
-  borderRadius: 12,
-},
+  editButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    backgroundColor: COLORS.secondary,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
 
   editText: {
     color: COLORS.white,

@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-import { useContacts } from "../Contexts/ContactsContext";
+import { useContacts } from "../contexts/ContactsContext";
 
 const RELATIONSHIPS = ["Family", "Friend", "Colleague", "Other"];
 
@@ -60,46 +60,46 @@ export default function AddContact() {
   }, [id]);
 
   async function handleSave() {
-  if (!name.trim() || !email.trim() || !phone.trim()) {
-    console.log("Validation failed");
-    return;
-  }
-
-  const payload = {
-    name,
-    email,
-    phone,
-    relationship,
-  };
-
-  console.log("Saving contact...");
-  console.log("Payload:", payload);
-
-  try {
-    if (isEditing) {
-      await updateContact(id!, payload);
-      console.log("Contact updated");
-    } else {
-      await addContact(payload);
-      console.log("Contact added");
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      console.log("Validation failed");
+      return;
     }
 
-    router.back();
-  } catch (error) {
-    console.log("Save Error:", error);
-  }
-}
+    const payload = {
+      name,
+      email,
+      phone,
+      relationship,
+    };
 
-async function handleDelete() {
-  if (!id) return;
+    console.log("Saving contact...");
+    console.log("Payload:", payload);
 
-  try {
-    await deleteContact(id);
-    router.back();
-  } catch (error) {
-    console.log("Delete Error:", error);
+    try {
+      if (isEditing) {
+        await updateContact(id!, payload);
+        console.log("Contact updated");
+      } else {
+        await addContact(payload);
+        console.log("Contact added");
+      }
+
+      router.back();
+    } catch (error) {
+      console.log("Save Error:", error);
+    }
   }
-}
+
+  async function handleDelete() {
+    if (!id) return;
+
+    try {
+      await deleteContact(id);
+      router.back();
+    } catch (error) {
+      console.log("Delete Error:", error);
+    }
+  }
 
   return (
     <KeyboardAvoidingView

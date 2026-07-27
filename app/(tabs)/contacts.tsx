@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native
 
 import ContactCard from "../../components/contacts/ContactCard";
 import AppHeader from "../../components/ui/AppHeader";
-import { useContacts } from "../../Contexts/ContactsContext";
+import { useContacts } from "../../contexts/ContactsContext";
 
 export default function Contacts() {
   const { contacts, fetchContacts } = useContacts();

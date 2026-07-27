@@ -18,8 +18,7 @@ import { getHistory } from "@/api/historyApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import { useContacts } from "../Contexts/ContactsContext";
-import { useAuth } from "../Context/AuthContext";
+import { useContacts } from "../contexts/ContactsContext";
 
 const { width } = Dimensions.get("window");
 const API_BASE_URL = "http://192.168.1.68:5000/api";
@@ -87,7 +86,8 @@ const DashboardCard = ({ title, icon, children, onPress }: CardProps) => {
 
 const GreetingHeader = () => {
   const { user } = useAuth();
-  const userData = user as UserProfile | undefined;
+  // user may come from auth context; avoid referencing an undefined type
+  const userData = user as any | undefined;
 
   const avatarUri =
     userData?.profilePicture ||
@@ -281,34 +281,34 @@ export default function HomeDashboard() {
   }, []);
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const fetchAlerts = async () => {
-    try {
-      if (!token) return;
+    const fetchAlerts = async () => {
+      try {
+        if (!token) return;
 
-      const response = await getHistory(token);
+        const response = await getHistory(token);
 
-      const formatted = response.history.map((item: any) => ({
-        id: item._id,
-        message: "SOS Alert Sent",
-        createdAt: item.createdAt,
-      }));
+        const formatted = response.history.map((item: any) => ({
+          id: item._id,
+          message: "SOS Alert Sent",
+          createdAt: item.createdAt,
+        }));
 
-      if (isMounted) setAlerts(formatted);
-    } catch (error) {
-      console.log("Failed to fetch alerts:", error);
-    } finally {
-      if (isMounted) setAlertsLoading(false);
-    }
-  };
+        if (isMounted) setAlerts(formatted);
+      } catch (error) {
+        console.log("Failed to fetch alerts:", error);
+      } finally {
+        if (isMounted) setAlertsLoading(false);
+      }
+    };
 
-  fetchAlerts();
+    fetchAlerts();
 
-  return () => {
-    isMounted = false;
-  };
-}, [token]);
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
 
   const handleSOSPress = React.useCallback(() => {
     router.push("/sos-confirmation");
@@ -323,10 +323,7 @@ export default function HomeDashboard() {
       >
         {/* Header */}
 
-        <Header
-  title="Nirvaya"
-  onSettings={() => router.push("/settings")}
-/>
+        <Header title="Nirvaya" onSettings={() => router.push("/settings")} />
 
         <GreetingHeader />
 
@@ -355,98 +352,102 @@ export default function HomeDashboard() {
         {/* Trusted Contacts */}
 
         <DashboardCard
-  title="Trusted Contacts"
-  onPress={() => router.push("/contacts")}
-  icon={
-    <MaterialIcons name="group" size={18} color={COLORS.secondary} />
-  }
->
-  {contactsLoading ? (
-    <Text style={styles.smallText}>Loading contacts...</Text>
-  ) : (
-    <View style={styles.contactsRow}>
-      <View>
-        <Text style={styles.bigNumber}>Contacts</Text>
+          title="Trusted Contacts"
+          onPress={() => router.push("/contacts")}
+          icon={
+            <MaterialIcons name="group" size={18} color={COLORS.secondary} />
+          }
+        >
+          {contactsLoading ? (
+            <Text style={styles.smallText}>Loading contacts...</Text>
+          ) : (
+            <View style={styles.contactsRow}>
+              <View>
+                <Text style={styles.bigNumber}>Contacts</Text>
 
-        <Text style={styles.smallText}>
-          {contacts.length > 0 ? "Ready to alert" : "No contacts added yet"}
-        </Text>
-      </View>
+                <Text style={styles.smallText}>
+                  {contacts.length > 0
+                    ? "Ready to alert"
+                    : "No contacts added yet"}
+                </Text>
+              </View>
 
-      {contacts.length > 0 && (
-        <View style={styles.avatarGroup}>
-          {contacts.slice(0, 2).map((c, index) => (
-            <View
-              key={c.id}
-              style={[
-                styles.smallAvatar,
-                {
-                  marginLeft: index === 0 ? 0 : -10,
-                },
-              ]}
-            >
-              <Text style={styles.avatarLetter}>{c.name.charAt(0)}</Text>
-            </View>
-          ))}
+              {contacts.length > 0 && (
+                <View style={styles.avatarGroup}>
+                  {contacts.slice(0, 2).map((c, index) => (
+                    <View
+                      key={c.id}
+                      style={[
+                        styles.smallAvatar,
+                        {
+                          marginLeft: index === 0 ? 0 : -10,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.avatarLetter}>
+                        {c.name.charAt(0)}
+                      </Text>
+                    </View>
+                  ))}
 
-          {contacts.length > 2 && (
-            <View
-              style={[
-                styles.smallAvatar,
-                {
-                  marginLeft: -10,
-                  backgroundColor: COLORS.surfaceVariant,
-                },
-              ]}
-            >
-              <Text style={styles.avatarLetter}>
-                +{contacts.length - 2}
-              </Text>
+                  {contacts.length > 2 && (
+                    <View
+                      style={[
+                        styles.smallAvatar,
+                        {
+                          marginLeft: -10,
+                          backgroundColor: COLORS.surfaceVariant,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.avatarLetter}>
+                        +{contacts.length - 2}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           )}
-        </View>
-      )}
-    </View>
-  )}
-</DashboardCard>
+        </DashboardCard>
 
         {/* Recent Alert */}
 
-       <DashboardCard
-  title="Recent Alert"
-  onPress={() => router.push("/history")}
-  icon={
-    <MaterialIcons name="history" size={18} color={COLORS.secondary} />
-  }
->
-  {alertsLoading ? (
-    <Text style={styles.smallText}>Loading alerts...</Text>
-  ) : alerts.length > 0 ? (
-    <View style={styles.alertContainer}>
-      <MaterialIcons
-        name="notifications-active"
-        size={40}
-        color={COLORS.error}
-      />
+        <DashboardCard
+          title="Recent Alert"
+          onPress={() => router.push("/history")}
+          icon={
+            <MaterialIcons name="history" size={18} color={COLORS.secondary} />
+          }
+        >
+          {alertsLoading ? (
+            <Text style={styles.smallText}>Loading alerts...</Text>
+          ) : alerts.length > 0 ? (
+            <View style={styles.alertContainer}>
+              <MaterialIcons
+                name="notifications-active"
+                size={40}
+                color={COLORS.error}
+              />
 
-      <Text style={styles.alertDateText}>{alerts[0].message}</Text>
+              <Text style={styles.alertDateText}>{alerts[0].message}</Text>
 
-      <Text style={styles.alertDateText}>
-        {new Date(alerts[0].createdAt).toLocaleString()}
-      </Text>
-    </View>
-  ) : (
-    <View style={styles.alertContainer}>
-      <MaterialIcons
-        name="notifications-paused"
-        size={40}
-        color="#BBBBBB"
-      />
+              <Text style={styles.alertDateText}>
+                {new Date(alerts[0].createdAt).toLocaleString()}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.alertContainer}>
+              <MaterialIcons
+                name="notifications-paused"
+                size={40}
+                color="#BBBBBB"
+              />
 
-      <Text style={styles.alertDateText}>No recent alerts.</Text>
-    </View>
-  )}
-</DashboardCard>
+              <Text style={styles.alertDateText}>No recent alerts.</Text>
+            </View>
+          )}
+        </DashboardCard>
       </ScrollView>
     </SafeAreaView>
   );
