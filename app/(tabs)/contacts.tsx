@@ -1,17 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 import ContactCard from "../../components/contacts/ContactCard";
 import AppHeader from "../../components/ui/AppHeader";
-import { useContacts } from "../../contexts/ContactsContext";
+import { useContacts } from "../../Contexts/ContactsContext";
 
 export default function Contacts() {
-  const { contacts } = useContacts();
+  const { contacts, fetchContacts } = useContacts();
+
+  useEffect(() => {
+    fetchContacts();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <AppHeader />
+     <AppHeader
+  onSettingsPress={() => router.push("/settings")}
+/>
 
       <View style={styles.titleBlock}>
         <Text style={styles.title}>Trusted Circle</Text>

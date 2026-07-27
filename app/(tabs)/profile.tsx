@@ -1,14 +1,18 @@
-import React from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   Dimensions,
   Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTheme } from "../../Context/ThemeContext";
+import { getProfile } from "../../utils/profileStorage";
 
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -19,7 +23,7 @@ import { router } from "expo-router";
 let useAuth: () => { logout: () => Promise<void> };
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const mod = require("../Context/AuthContext");
+  const mod = require("../../Context/AuthContext");
   useAuth = mod.useAuth || (() => ({ logout: async () => {} }));
 } catch (err) {
   useAuth = () => ({ logout: async () => {} });
@@ -27,25 +31,6 @@ try {
 
 const { width } = Dimensions.get("window");
 
-const COLORS = {
-  primary: "#091426",
-  secondary: "#006A61",
-  background: "#F8F9FF",
-  white: "#FFFFFF",
-  error: "#BA1A1A",
-  errorContainer: "#FFDAD6",
-  textSecondary: "#45474C",
-  border: "#C5C6CD",
-  surfaceVariant: "#D5E3FD",
-  safeZone: "#86F2E4",
-  shadow: "rgba(30,41,59,0.08)",
-};
-
-const profile = {
-  name: "Sarah Jenkins",
-  email: "sarah@example.com",
-  avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-};
 
 interface RowProps {
   title: string;
@@ -54,6 +39,7 @@ interface RowProps {
   iconBackground: string;
   iconColor: string;
   onPress?: () => void;
+  styles: any;
 }
 
 const SettingsRow = ({
@@ -63,6 +49,7 @@ const SettingsRow = ({
   iconBackground,
   iconColor,
   onPress,
+  styles
 }: RowProps) => {
   return (
     <TouchableOpacity activeOpacity={0.85} style={styles.row} onPress={onPress}>
@@ -92,6 +79,52 @@ const SettingsRow = ({
 
 export default function Profile() {
   const { logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  console.log("Dark Mode:", isDark);
+  
+  const COLORS = {
+  primary: isDark ? "#FFFFFF" : "#091426",
+  secondary: isDark ? "#86F2E4" : "#006A61",
+  background: isDark ? "#121212" : "#F8F9FF",
+  white: isDark ? "#1E1E1E" : "#FFFFFF",
+  error: "#BA1A1A",
+  errorContainer: "#FFDAD6",
+  textSecondary: isDark ? "#AAAAAA" : "#45474C",
+  border: isDark ? "#333333" : "#C5C6CD",
+  surfaceVariant: isDark ? "#333333" : "#D5E3FD",
+  safeZone: "#86F2E4",
+  shadow: "rgba(30,41,59,0.08)",
+};
+const styles = createStyles(COLORS);
+  const [profile, setProfile] = useState({
+  name: "Sarah Jenkins",
+  email: "sarah@example.com",
+  phone: "",
+  address: "",
+  avatar: "",
+});
+
+
+
+useFocusEffect(
+  useCallback(() => {
+    const loadProfile = async () => {
+      const data = await getProfile();
+
+      if (data) {
+        setProfile({
+          name: data.name || "Sarah Jenkins",
+          email: data.email || "sarah@example.com",
+          phone: data.phone || "",
+          address: data.address || "",
+         avatar: data.image ?? "",
+        });
+      }
+    };
+
+    loadProfile();
+  }, [])
+);
 
   const handleLogout = async () => {
     try {
@@ -104,7 +137,7 @@ export default function Profile() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, {backgroundColor: COLORS.background}]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -114,15 +147,22 @@ export default function Profile() {
         {/* Top App Bar */}
 
         <View style={styles.topBar}>
-          <TouchableOpacity>
-            <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+          <TouchableOpacity style={styles.iconButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
           </TouchableOpacity>
 
           <Text style={styles.logo}>Nirvaya</Text>
 
-          <TouchableOpacity>
-            <Feather name="settings" size={22} color={COLORS.primary} />
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.iconButton}
+  onPress={() => router.push("/settings")}
+>
+  <Feather
+    name="settings"
+    size={19}
+    color={COLORS.primary}
+  />
+</TouchableOpacity>
         </View>
 
         {/* Profile Card */}
@@ -131,17 +171,26 @@ export default function Profile() {
           <View style={styles.profileBackground} />
 
           <Image
-            source={{
-              uri: profile.avatar,
-            }}
-            style={styles.avatar}
-          />
+  source={{
+    uri:
+      profile.avatar ||
+      "https://i.pravatar.cc/300",
+  }}
+  style={styles.avatar}
+/>
 
-          <Text style={styles.name}>{profile.name}</Text>
+         <Text style={styles.name}>
+  {profile.name || "Your Name"}
+</Text>
 
-          <Text style={styles.email}>{profile.email}</Text>
+          <Text style={styles.email}>
+  {profile.email || "your@email.com"}
+</Text>
 
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity
+  style={styles.editButton}
+  onPress={() => router.push("/edit-profile")}
+>
             <MaterialIcons name="edit" color="white" size={18} />
 
             <Text style={styles.editText}>Edit Profile</Text>
@@ -149,8 +198,8 @@ export default function Profile() {
         </View>
 
         {/* Safety Core Card */}
+        <View style={[styles.card, {backgroundColor: COLORS.white}]}>
 
-        <View style={styles.card}>
           <Text style={styles.sectionTitle}>SAFETY CORE</Text>
 
           <SettingsRow
@@ -159,6 +208,7 @@ export default function Profile() {
             icon="health-and-safety"
             iconBackground="#FFDAD6"
             iconColor="#BA1A1A"
+            styles={styles}
           />
 
           <View style={styles.divider} />
@@ -169,6 +219,7 @@ export default function Profile() {
             icon="my-location"
             iconBackground="#86F2E4"
             iconColor="#006A61"
+            styles={styles}
           />
         </View>
         {/* Security Card */}
@@ -180,8 +231,58 @@ export default function Profile() {
             icon="lock"
             iconBackground="#D5E3FD"
             iconColor={COLORS.primary}
+            styles={styles}
           />
         </View>
+        {/* Appearance Card */}
+
+<View style={styles.card}>
+
+  <View style={styles.row}>
+
+    <View style={styles.rowLeft}>
+
+      <View
+        style={[
+          styles.iconCircle,
+          {
+            backgroundColor: "#D5E3FD",
+          },
+        ]}
+      >
+        <Ionicons
+          name="moon"
+          size={22}
+          color={COLORS.primary}
+        />
+      </View>
+
+      <View>
+        <Text style={styles.rowTitle}>
+          Dark Mode
+        </Text>
+
+        <Text style={styles.rowSubtitle}>
+          Switch between dark and bright mode
+        </Text>
+      </View>
+
+    </View>
+
+
+    <Switch
+  value={isDark}
+  onValueChange={toggleTheme}
+  trackColor={{
+    false: "#767577",
+    true: COLORS.secondary,
+  }}
+  thumbColor={isDark ? "#FFFFFF" : "#f4f3f4"}
+/>
+
+  </View>
+
+</View>
 
         {/* Logout Card */}
 
@@ -207,26 +308,38 @@ export default function Profile() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
 
   topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 15,
-    paddingBottom: 10,
+    paddingBottom: 14,
+   backgroundColor: COLORS.surfaceVariant,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
 
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#EEF1F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   logo: {
     fontSize: 22,
     fontWeight: "700",
     color: COLORS.primary,
   },
+
 
   profileCard: {
     marginHorizontal: 20,
@@ -270,16 +383,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  editButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
+ editButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: 20,
+  backgroundColor: COLORS.secondary,
+  paddingHorizontal: 28,
+  paddingVertical: 12,
+  borderRadius: 12,
+},
 
   editText: {
     color: COLORS.white,

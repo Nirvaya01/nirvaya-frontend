@@ -83,29 +83,35 @@ export function ContactsProvider({ children }: { children: React.ReactNode }) {
   // =========================
   // ADD CONTACT
   // =========================
+async function addContact(contact: ContactInput) {
+  console.log("🔥 addContact called");
 
-  async function addContact(contact: ContactInput) {
-    if (!token) return;
-
-    try {
-      const response = await createEmergencyContact(token, contact);
-
-      if (response.success) {
-        const newContact = {
-          ...response.contact,
-
-          id: response.contact._id,
-
-          initial: response.contact.name?.[0]?.toUpperCase() ?? "?",
-        };
-
-        setContacts((prev) => [...prev, newContact]);
-      }
-    } catch (error) {
-      console.log("Add contact error:", error);
-    }
+  if (!token) {
+    console.log("❌ No token");
+    return;
   }
+  try {
+    const response = await createEmergencyContact(token, contact);
 
+    console.log("📥 Response:", response);
+
+    if (response.success) {
+      const newContact = {
+        ...response.contact,
+        id: response.contact._id,
+        initial: response.contact.name?.[0]?.toUpperCase() ?? "?",
+      };
+
+      setContacts((prev) => [...prev, newContact]);
+
+      console.log("✅ Contact saved");
+    } else {
+      console.log("❌ Backend returned success = false");
+    }
+  } catch (error) {
+    console.log("❌ ERROR:", error);
+  }
+}
   // =========================
   // UPDATE CONTACT
   // =========================

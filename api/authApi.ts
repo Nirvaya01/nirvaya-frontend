@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://192.168.1.144:5000/api";
+export const API_BASE_URL = "http://192.168.1.68:5000/api";
 
 // USER TYPE
 export interface User {

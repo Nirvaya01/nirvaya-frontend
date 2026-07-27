@@ -1,9 +1,9 @@
+import Header from "@/components/Header";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
   Image,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,11 +11,17 @@ import {
   View,
 } from "react-native";
 
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useAuth } from "@/Context/AuthContext";
+import { getHistory } from "@/api/historyApi";
+import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
+import { useContacts } from "../Contexts/ContactsContext";
 
 const { width } = Dimensions.get("window");
+const API_BASE_URL = "http://192.168.1.68:5000/api";
 
 const COLORS = {
   primary: "#091426",
@@ -36,18 +42,17 @@ interface Contact {
   name: string;
 }
 
+interface Alert {
+  id: string;
+  message: string;
+  createdAt: string;
+}
+
 interface SafeZone {
   id: string;
   name: string;
   active: boolean;
 }
-
-const contacts: Contact[] = [
-  { id: "1", name: "Robert" },
-  { id: "2", name: "Maria" },
-  { id: "3", name: "Jordan" },
-  { id: "4", name: "Priya" },
-];
 
 const safeZones: SafeZone[] = [
   { id: "1", name: "Home", active: true },
@@ -204,6 +209,10 @@ export default function HomeDashboard() {
     "Fetching location...",
   );
   const [coordsText, setCoordsText] = useState<string>("");
+  const { contacts, loading: contactsLoading, fetchContacts } = useContacts();
+  const { token } = useAuth();
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -263,6 +272,36 @@ export default function HomeDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+  let isMounted = true;
+
+  const fetchAlerts = async () => {
+    try {
+      if (!token) return;
+
+      const response = await getHistory(token);
+
+      const formatted = response.history.map((item: any) => ({
+        id: item._id,
+        message: "SOS Alert Sent",
+        createdAt: item.createdAt,
+      }));
+
+      if (isMounted) setAlerts(formatted);
+    } catch (error) {
+      console.log("Failed to fetch alerts:", error);
+    } finally {
+      if (isMounted) setAlertsLoading(false);
+    }
+  };
+
+  fetchAlerts();
+
+  return () => {
+    isMounted = false;
+  };
+}, [token]);
+
   const handleSOSPress = React.useCallback(() => {
     router.push("/sos-confirmation");
   }, []);
@@ -276,17 +315,10 @@ export default function HomeDashboard() {
       >
         {/* Header */}
 
-        <View style={styles.topBar}>
-          <TouchableOpacity>
-            <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-
-          <Text style={styles.logo}>Nirvaya</Text>
-
-          <TouchableOpacity>
-            <Feather name="settings" size={22} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
+        <Header
+  title="Nirvaya"
+  onSettings={() => router.push("/settings")}
+/>
 
         <GreetingHeader />
 
@@ -315,66 +347,98 @@ export default function HomeDashboard() {
         {/* Trusted Contacts */}
 
         <DashboardCard
-          title="Trusted Contacts"
-          icon={
-            <MaterialIcons name="group" size={18} color={COLORS.secondary} />
-          }
-        >
-          <View style={styles.contactsRow}>
-            <View>
-              <Text style={styles.bigNumber}>{contacts.length} Protected</Text>
+  title="Trusted Contacts"
+  onPress={() => router.push("/contacts")}
+  icon={
+    <MaterialIcons name="group" size={18} color={COLORS.secondary} />
+  }
+>
+  {contactsLoading ? (
+    <Text style={styles.smallText}>Loading contacts...</Text>
+  ) : (
+    <View style={styles.contactsRow}>
+      <View>
+        <Text style={styles.bigNumber}>Contacts</Text>
 
-              <Text style={styles.smallText}>Ready to alert</Text>
+        <Text style={styles.smallText}>
+          {contacts.length > 0 ? "Ready to alert" : "No contacts added yet"}
+        </Text>
+      </View>
+
+      {contacts.length > 0 && (
+        <View style={styles.avatarGroup}>
+          {contacts.slice(0, 2).map((c, index) => (
+            <View
+              key={c.id}
+              style={[
+                styles.smallAvatar,
+                {
+                  marginLeft: index === 0 ? 0 : -10,
+                },
+              ]}
+            >
+              <Text style={styles.avatarLetter}>{c.name.charAt(0)}</Text>
             </View>
+          ))}
 
-            <View style={styles.avatarGroup}>
-              {contacts.slice(0, 2).map((c, index) => (
-                <View
-                  key={c.id}
-                  style={[
-                    styles.smallAvatar,
-                    {
-                      marginLeft: index === 0 ? 0 : -10,
-                    },
-                  ]}
-                >
-                  <Text style={styles.avatarLetter}>{c.name.charAt(0)}</Text>
-                </View>
-              ))}
-
-              <View
-                style={[
-                  styles.smallAvatar,
-                  {
-                    marginLeft: -10,
-                    backgroundColor: COLORS.surfaceVariant,
-                  },
-                ]}
-              >
-                <Text style={styles.avatarLetter}>+2</Text>
-              </View>
+          {contacts.length > 2 && (
+            <View
+              style={[
+                styles.smallAvatar,
+                {
+                  marginLeft: -10,
+                  backgroundColor: COLORS.surfaceVariant,
+                },
+              ]}
+            >
+              <Text style={styles.avatarLetter}>
+                +{contacts.length - 2}
+              </Text>
             </View>
-          </View>
-        </DashboardCard>
+          )}
+        </View>
+      )}
+    </View>
+  )}
+</DashboardCard>
 
         {/* Recent Alert */}
 
-        <DashboardCard
-          title="Recent Alert"
-          icon={
-            <MaterialIcons name="history" size={18} color={COLORS.secondary} />
-          }
-        >
-          <View style={styles.alertContainer}>
-            <MaterialIcons
-              name="notifications-paused"
-              size={40}
-              color="#BBBBBB"
-            />
+       <DashboardCard
+  title="Recent Alert"
+  onPress={() => router.push("/history")}
+  icon={
+    <MaterialIcons name="history" size={18} color={COLORS.secondary} />
+  }
+>
+  {alertsLoading ? (
+    <Text style={styles.smallText}>Loading alerts...</Text>
+  ) : alerts.length > 0 ? (
+    <View style={styles.alertContainer}>
+      <MaterialIcons
+        name="notifications-active"
+        size={40}
+        color={COLORS.error}
+      />
 
-            <Text style={styles.alertText}>No recent alerts.</Text>
-          </View>
-        </DashboardCard>
+      <Text style={styles.alertDateText}>{alerts[0].message}</Text>
+
+      <Text style={styles.alertDateText}>
+        {new Date(alerts[0].createdAt).toLocaleString()}
+      </Text>
+    </View>
+  ) : (
+    <View style={styles.alertContainer}>
+      <MaterialIcons
+        name="notifications-paused"
+        size={40}
+        color="#BBBBBB"
+      />
+
+      <Text style={styles.alertDateText}>No recent alerts.</Text>
+    </View>
+  )}
+</DashboardCard>
       </ScrollView>
     </SafeAreaView>
   );
@@ -391,7 +455,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 15,
+    paddingTop: 28,
     paddingBottom: 10,
   },
 
@@ -623,9 +687,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
 
-  alertText: {
-    marginTop: 10,
+  alertDateText: {
+    marginTop: 6,
     color: COLORS.textSecondary,
-    fontSize: 16,
+    fontSize: 13,
   },
 });
