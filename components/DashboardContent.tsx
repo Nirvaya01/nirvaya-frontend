@@ -1,27 +1,25 @@
 import Header from "@/components/Header";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/Context/AuthContext";
 import { getHistory } from "@/api/historyApi";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { useContacts } from "../contexts/ContactsContext";
-
-const { width } = Dimensions.get("window");
-const API_BASE_URL = "http://192.168.1.68:5000/api";
+import { getSafeImageSource } from "../utils/imageSource";
 
 const COLORS = {
   primary: "#091426",
@@ -37,28 +35,11 @@ const COLORS = {
   surfaceVariant: "#D5E3FD",
 };
 
-interface Contact {
-  id: string;
-  name: string;
-}
-
 interface Alert {
   id: string;
   message: string;
   createdAt: string;
 }
-
-interface SafeZone {
-  id: string;
-  name: string;
-  active: boolean;
-}
-
-const safeZones: SafeZone[] = [
-  { id: "1", name: "Home", active: true },
-  { id: "2", name: "College", active: false },
-  { id: "3", name: "Work", active: false },
-];
 
 interface CardProps {
   title: string;
@@ -68,15 +49,26 @@ interface CardProps {
 }
 
 const DashboardCard = ({ title, icon, children, onPress }: CardProps) => {
+  const theme = useAppTheme();
+
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.card}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
+      style={[
+        styles.card,
+        { backgroundColor: theme.surface, shadowColor: theme.shadow },
+      ]}
+    >
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleRow}>
           {icon}
-          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={[styles.cardTitle, { color: theme.success }]}>
+            {title}
+          </Text>
         </View>
 
-        <MaterialIcons name="chevron-right" size={22} color="#999" />
+        <MaterialIcons name="chevron-right" size={22} color={theme.iconMuted} />
       </View>
 
       {children}
@@ -86,29 +78,28 @@ const DashboardCard = ({ title, icon, children, onPress }: CardProps) => {
 
 const GreetingHeader = () => {
   const { user } = useAuth();
+  const theme = useAppTheme();
   // user may come from auth context; avoid referencing an undefined type
   const userData = user as any | undefined;
-
-  const avatarUri =
-    userData?.profilePicture ||
-    "https://randomuser.me/api/portraits/women/68.jpg";
 
   return (
     <View style={styles.headerContainer}>
       <Image
-        source={{
-          uri: avatarUri,
-        }}
-        style={styles.avatar}
+        source={getSafeImageSource(userData?.profilePicture)}
+        style={[styles.avatar, { borderColor: theme.surface }]}
       />
 
       <View style={{ flex: 1 }}>
-        <Text style={styles.greeting}>Hello, {userData?.name || "User"}.</Text>
+        <Text style={[styles.greeting, { color: theme.text }]}>
+          Hello, {userData?.name || "User"}.
+        </Text>
 
         <View style={styles.statusRow}>
-          <View style={styles.safeDot} />
+          <View style={[styles.safeDot, { backgroundColor: theme.success }]} />
 
-          <Text style={styles.safeText}>You are safe.</Text>
+          <Text style={[styles.safeText, { color: theme.textSecondary }]}>
+            You are safe.
+          </Text>
         </View>
       </View>
     </View>
@@ -120,6 +111,7 @@ interface SOSButtonProps {
 }
 
 const SOSButton = ({ onPress }: SOSButtonProps) => {
+  const theme = useAppTheme();
   const pulse = useRef(new Animated.Value(1)).current;
   const pulse2 = useRef(new Animated.Value(1)).current;
 
@@ -158,7 +150,7 @@ const SOSButton = ({ onPress }: SOSButtonProps) => {
     animation.start();
 
     return () => animation.stop();
-  }, []);
+  }, [pulse, pulse2]);
 
   return (
     <View style={styles.sosContainer}>
@@ -166,6 +158,7 @@ const SOSButton = ({ onPress }: SOSButtonProps) => {
         style={[
           styles.pulse,
           {
+            backgroundColor: theme.danger,
             transform: [{ scale: pulse }],
             opacity: pulse.interpolate({
               inputRange: [1, 1.4],
@@ -179,6 +172,7 @@ const SOSButton = ({ onPress }: SOSButtonProps) => {
         style={[
           styles.pulse,
           {
+            backgroundColor: theme.danger,
             transform: [{ scale: pulse2 }],
             opacity: pulse2.interpolate({
               inputRange: [1, 1.5],
@@ -190,34 +184,52 @@ const SOSButton = ({ onPress }: SOSButtonProps) => {
 
       <TouchableOpacity
         activeOpacity={0.85}
-        style={styles.sosButton}
+        style={[
+          styles.sosButton,
+          { backgroundColor: theme.danger, shadowColor: theme.danger },
+        ]}
         onPress={onPress}
       >
         <MaterialIcons name="emergency" color="white" size={48} />
         <Text style={styles.sosText}>SOS</Text>
       </TouchableOpacity>
 
-      <Text style={styles.sosCaption}>
+      <Text style={[styles.sosCaption, { color: theme.textSecondary }]}>
         Tap to notify your emergency contacts.
       </Text>
     </View>
   );
 };
 
-const ProtectionStatus = () => (
-  <View style={styles.protectionCard}>
-    <View style={styles.safeDot} />
+const ProtectionStatus = () => {
+  const theme = useAppTheme();
 
-    <Text style={styles.safeText}>Protection Active</Text>
-  </View>
-);
+  return (
+    <View
+      style={[
+        styles.protectionCard,
+        {
+          backgroundColor: theme.surface,
+          shadowColor: theme.shadow,
+        },
+      ]}
+    >
+      <View style={[styles.safeDot, { backgroundColor: theme.success }]} />
+
+      <Text style={[styles.safeText, { color: theme.textSecondary }]}>
+        Protection Active
+      </Text>
+    </View>
+  );
+};
 
 export default function HomeDashboard() {
+  const theme = useAppTheme();
   const [currentAddress, setCurrentAddress] = useState<string>(
     "Fetching location...",
   );
   const [coordsText, setCoordsText] = useState<string>("");
-  const { contacts, loading: contactsLoading, fetchContacts } = useContacts();
+  const { contacts, loading: contactsLoading } = useContacts();
   const { token } = useAuth();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState(true);
@@ -270,7 +282,7 @@ export default function HomeDashboard() {
             `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`,
           );
         }
-      } catch (error) {
+      } catch {
         if (isMounted) setCurrentAddress("Unable to fetch location");
       }
     })();
@@ -314,20 +326,25 @@ export default function HomeDashboard() {
     router.push("/sos-confirmation");
   }, []);
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 20,
+          paddingBottom: 28,
+          backgroundColor: theme.background,
+          paddingHorizontal: 16,
         }}
       >
         {/* Header */}
 
-        <Header title="Nirvaya" onSettings={() => router.push("/settings")} />
+        <Header title="Nirvaya" />
 
-        <GreetingHeader />
-
-        <ProtectionStatus />
+        <View style={styles.heroSection}>
+          <GreetingHeader />
+          <ProtectionStatus />
+        </View>
 
         <SOSButton onPress={handleSOSPress} />
         {/* Remaining cards come in Part 2 */}
@@ -336,16 +353,16 @@ export default function HomeDashboard() {
         <DashboardCard
           title="Safe Zones"
           icon={
-            <MaterialIcons
-              name="location-on"
-              size={18}
-              color={COLORS.secondary}
-            />
+            <MaterialIcons name="location-on" size={18} color={theme.primary} />
           }
         >
-          <Text style={styles.zoneTitle}>{currentAddress}</Text>
+          <Text style={[styles.zoneTitle, { color: theme.text }]}>
+            {currentAddress}
+          </Text>
           {coordsText ? (
-            <Text style={styles.coordsText}>{coordsText}</Text>
+            <Text style={[styles.coordsText, { color: theme.textSecondary }]}>
+              {coordsText}
+            </Text>
           ) : null}
         </DashboardCard>
 
@@ -354,18 +371,22 @@ export default function HomeDashboard() {
         <DashboardCard
           title="Trusted Contacts"
           onPress={() => router.push("/contacts")}
-          icon={
-            <MaterialIcons name="group" size={18} color={COLORS.secondary} />
-          }
+          icon={<MaterialIcons name="group" size={18} color={theme.primary} />}
         >
           {contactsLoading ? (
-            <Text style={styles.smallText}>Loading contacts...</Text>
+            <Text style={[styles.smallText, { color: theme.textSecondary }]}>
+              Loading contacts...
+            </Text>
           ) : (
             <View style={styles.contactsRow}>
               <View>
-                <Text style={styles.bigNumber}>Contacts</Text>
+                <Text style={[styles.bigNumber, { color: theme.text }]}>
+                  Contacts
+                </Text>
 
-                <Text style={styles.smallText}>
+                <Text
+                  style={[styles.smallText, { color: theme.textSecondary }]}
+                >
                   {contacts.length > 0
                     ? "Ready to alert"
                     : "No contacts added yet"}
@@ -381,6 +402,7 @@ export default function HomeDashboard() {
                         styles.smallAvatar,
                         {
                           marginLeft: index === 0 ? 0 : -10,
+                          backgroundColor: theme.primaryDark,
                         },
                       ]}
                     >
@@ -396,7 +418,7 @@ export default function HomeDashboard() {
                         styles.smallAvatar,
                         {
                           marginLeft: -10,
-                          backgroundColor: COLORS.surfaceVariant,
+                          backgroundColor: theme.surfaceSoft,
                         },
                       ]}
                     >
@@ -417,22 +439,30 @@ export default function HomeDashboard() {
           title="Recent Alert"
           onPress={() => router.push("/history")}
           icon={
-            <MaterialIcons name="history" size={18} color={COLORS.secondary} />
+            <MaterialIcons name="history" size={18} color={theme.primary} />
           }
         >
           {alertsLoading ? (
-            <Text style={styles.smallText}>Loading alerts...</Text>
+            <Text style={[styles.smallText, { color: theme.textSecondary }]}>
+              Loading alerts...
+            </Text>
           ) : alerts.length > 0 ? (
             <View style={styles.alertContainer}>
               <MaterialIcons
                 name="notifications-active"
                 size={40}
-                color={COLORS.error}
+                color={theme.danger}
               />
 
-              <Text style={styles.alertDateText}>{alerts[0].message}</Text>
+              <Text
+                style={[styles.alertDateText, { color: theme.textSecondary }]}
+              >
+                {alerts[0].message}
+              </Text>
 
-              <Text style={styles.alertDateText}>
+              <Text
+                style={[styles.alertDateText, { color: theme.textSecondary }]}
+              >
                 {new Date(alerts[0].createdAt).toLocaleString()}
               </Text>
             </View>
@@ -441,10 +471,14 @@ export default function HomeDashboard() {
               <MaterialIcons
                 name="notifications-paused"
                 size={40}
-                color="#BBBBBB"
+                color={theme.iconMuted}
               />
 
-              <Text style={styles.alertDateText}>No recent alerts.</Text>
+              <Text
+                style={[styles.alertDateText, { color: theme.textSecondary }]}
+              >
+                No recent alerts.
+              </Text>
             </View>
           )}
         </DashboardCard>

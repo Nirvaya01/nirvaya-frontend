@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import theme from '../theme';
+import { TouchableOpacity, Text, ViewStyle, TextStyle } from 'react-native';
+import designTheme from '../theme';
 import { ButtonVariant } from '../types/theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type Props = {
   variant?: ButtonVariant;
@@ -20,15 +21,24 @@ export const Button: React.FC<Props> = ({
   onPress,
   disabled = false,
 }) => {
-  const v = theme.components.button.variants[variant];
+  const appTheme = useAppTheme();
+  const v = designTheme.components.button.variants[variant];
 
   const containerStyle: ViewStyle = {
-    backgroundColor: (v as any).backgroundColor,
+    backgroundColor:
+      variant === 'primary'
+        ? appTheme.primary
+        : variant === 'secondary'
+          ? appTheme.secondary
+          : variant === 'ghost'
+            ? 'transparent'
+            : appTheme.danger,
     borderRadius: (v as any).borderRadius,
     paddingVertical: (v as any).paddingVertical,
     paddingHorizontal: (v as any).paddingHorizontal,
     borderWidth: (v as any).borderWidth || 0,
-    borderColor: (v as any).borderColor || 'transparent',
+    borderColor:
+      variant === 'ghost' ? appTheme.primary : (v as any).borderColor || 'transparent',
     opacity: disabled ? 0.6 : 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -36,10 +46,10 @@ export const Button: React.FC<Props> = ({
   };
 
   const labelStyle: TextStyle = {
-    color: (v as any).color,
-    fontFamily: theme.typography.fontFamily,
-    fontSize: theme.typography.labelMd.fontSize,
-    fontWeight: theme.typography.labelMd.fontWeight as any,
+    color: variant === 'ghost' ? appTheme.primary : appTheme.primaryText,
+    fontFamily: designTheme.typography.fontFamily,
+    fontSize: designTheme.typography.labelMd.fontSize,
+    fontWeight: designTheme.typography.labelMd.fontWeight as any,
   };
 
   return (

@@ -1,35 +1,40 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
   title: string;
   onBack?: () => void;
-  onSettings?: () => void;
 };
 
-export default function Header({
-  title,
-  onBack,
-  onSettings,
-}: Props) {
+export default function Header({ title, onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const theme = useAppTheme();
 
   return (
-    <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>      
-{onBack ? (
-  <TouchableOpacity style={styles.sideButton} onPress={onBack}>
-    <Ionicons name="arrow-back" size={24} color="#091426" />
-  </TouchableOpacity>
-) : (
-  <View style={styles.sideButton} />
-)}
+    <View
+      style={[
+        styles.topBar,
+        {
+          paddingTop: insets.top + 8,
+          paddingBottom: 12,
+          backgroundColor: theme.background,
+          borderBottomColor: theme.tabBarBorder,
+        },
+      ]}
+    >
+      {onBack ? (
+        <TouchableOpacity style={styles.sideButton} onPress={onBack}>
+          <Ionicons name="arrow-back" size={24} color={theme.icon} />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.sideButton} />
+      )}
 
-<Text style={styles.logo}>{title}</Text>
+      <Text style={[styles.logo, { color: theme.text }]}>{title}</Text>
 
-<TouchableOpacity style={styles.sideButton} onPress={onSettings}>
-  <Feather name="settings" size={22} color="#091426" />
-</TouchableOpacity>
+      <View style={styles.sideButton} />
     </View>
   );
 }
@@ -40,18 +45,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    borderBottomWidth: 1,
   },
   sideButton: {
-  width: 40,
-  height: 40,
-  justifyContent: "center",
-  alignItems: "center",
-},
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 22,
+    backgroundColor: "transparent",
+  },
 
   logo: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#091426",
+    flex: 1,
+    textAlign: "center",
   },
 });

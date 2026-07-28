@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { loginUser, signupUser, User } from "../api/authApi";
 import { getProfile } from "../api/profileApi";
@@ -33,15 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    checkLoginStatus();
-  }, []);
-
-  // =========================
-  // CHECK STORED LOGIN
-  // =========================
-
-  const checkLoginStatus = async () => {
+  const checkLoginStatus = useCallback(async () => {
     try {
       const savedToken = await AsyncStorage.getItem("accessToken");
 
@@ -76,12 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
-  // =========================
-  // LOGIN
-  // =========================
+  }, []);
 
-  const login = async (email: string, password: string) => {
+  useEffect(() => {
+    checkLoginStatus();
+  }, [checkLoginStatus]);
+
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await loginUser(email, password);
 
@@ -107,13 +100,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return false;
     }
-  };
+  }, []);
 
-  // =========================
-  // SIGNUP
-  // =========================
-
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = useCallback(async (name: string, email: string, password: string) => {
     try {
       const response = await signupUser(name, email, password);
 
@@ -127,9 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return false;
     }
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     try {
       if (!token) return;
 
@@ -153,13 +142,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.log("Refresh profile error:", error);
     }
-  };
+  }, [token]);
 
-  // =========================
-  // LOGOUT
-  // =========================
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await AsyncStorage.multiRemove(["accessToken", "refreshToken", "user"]);
 
     setToken(null);
@@ -167,27 +152,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
 
     setIsLoggedIn(false);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      isLoggedIn,
+      isLoading,
+      login,
+      signup,
+      logout,
+      refreshProfile,
+    }),
+    [user, token, isLoggedIn, isLoading, login, signup, logout, refreshProfile],
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-
-        token,
-
-        isLoggedIn,
-
-        isLoading,
-
-        login,
-
-        signup,
-
-        logout,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

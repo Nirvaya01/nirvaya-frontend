@@ -1,6 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, ViewStyle } from "react-native";
-import theme from "../theme";
+import designTheme from "../theme";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 type Props = {
   onPress?: () => void;
@@ -8,14 +9,15 @@ type Props = {
 };
 
 export const SosButton: React.FC<Props> = ({ onPress, style }) => {
-  const v = theme.components.button.variants.sos;
+  const appTheme = useAppTheme();
+  const v = designTheme.components.button.variants.sos;
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[
         {
-          backgroundColor: v.backgroundColor,
+          backgroundColor: appTheme.danger,
           borderRadius: v.borderRadius,
           width: v.width,
           height: v.height,
@@ -27,10 +29,10 @@ export const SosButton: React.FC<Props> = ({ onPress, style }) => {
     >
       <Text
         style={{
-          color: v.color,
-          fontFamily: theme.typography.fontFamily,
-          fontSize: theme.typography.labelMd.fontSize,
-          fontWeight: theme.typography.labelMd.fontWeight as any,
+          color: appTheme.primaryText,
+          fontFamily: designTheme.typography.fontFamily,
+          fontSize: designTheme.typography.labelMd.fontSize,
+          fontWeight: designTheme.typography.labelMd.fontWeight as any,
         }}
       >
         SOS

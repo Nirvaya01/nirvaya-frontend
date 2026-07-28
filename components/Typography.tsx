@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, TextStyle } from 'react-native';
-import theme from '../theme';
+import designTheme from '../theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type Variant = 'displaySos' | 'headlineLg' | 'headlineLgMobile' | 'headlineMd' | 'bodyLg' | 'bodyMd' | 'labelMd' | 'labelSm';
 
@@ -11,15 +12,16 @@ type Props = {
 };
 
 export const Typography: React.FC<Props> = ({ variant = 'bodyMd', children, style }) => {
-  const v = theme.typography[variant];
+  const appTheme = useAppTheme();
+  const v = designTheme.typography[variant];
 
   const textStyle: TextStyle = {
-    fontFamily: theme.typography.fontFamily,
+    fontFamily: designTheme.typography.fontFamily,
     fontSize: v.fontSize as number,
     fontWeight: v.fontWeight as any,
     lineHeight: v.lineHeight as number,
     letterSpacing: (v as any).letterSpacing,
-    color: theme.colors.text.primary,
+    color: appTheme.text,
   };
 
   return <Text style={[textStyle, style as any]}>{children}</Text>;

@@ -1,74 +1,82 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../Context/AuthContext";
 import { getHistory } from "../../api/historyApi";
 
-import { router } from "expo-router";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { useFocusEffect } from "expo-router";
 import AlertCard, { AlertEntry } from "../../components/history/AlertCard";
 import AppHeader from "../../components/ui/AppHeader";
 
 export default function History() {
   const { token } = useAuth();
-  
+  const theme = useAppTheme();
+
   const [history, setHistory] = useState<AlertEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-  console.log("History useEffect running");
+  const fetchHistory = useCallback(async () => {
+    if (!token) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
 
-  const fetchHistory = async () => {
+    setLoading(true);
+
     try {
-      console.log("Token:", token);
-
-      const response = await getHistory(token!);
-
-      console.log("History response:", response);
-
-      const formatted = response.history.map((item:any)=>({
-        id:item._id,
-        type:"sos",
-        title:"SOS Alert",
-        date:new Date(item.createdAt).toLocaleDateString(),
-        detail:item.googleMapsUrl,
-        status:"Sent Successfully"
+      const response = await getHistory(token);
+      const formatted = (response.history ?? []).map((item: any) => ({
+        id: item._id,
+        type: "sos",
+        title: "SOS Alert",
+        date: new Date(item.createdAt).toLocaleDateString(),
+        detail: item.googleMapsUrl,
+        status: "Sent Successfully",
       }));
 
       setHistory(formatted);
-
-    } catch(error){
+    } catch (error) {
       console.log("History Error:", error);
+      setHistory([]);
     } finally {
       setLoading(false);
     }
-  };
-  if(token){
-    fetchHistory();
-  }
+  }, [token]);
 
-}, [token]);
-
+  useFocusEffect(
+    useCallback(() => {
+      fetchHistory();
+      return undefined;
+    }, [fetchHistory]),
+  );
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <AppHeader
-  onSettingsPress={() => router.push("/settings")}
-/>
+      <SafeAreaView style={styles.loadingContainer}>
+        <AppHeader showSettings={false} />
         <ActivityIndicator size="large" color="#0F5D50" />
         <Text style={{ marginTop: 10 }}>Loading history...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <AppHeader
-  
-/>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
+      <AppHeader showSettings={false} />
 
       <View style={styles.titleBlock}>
-        <Text style={styles.title}>Alert History</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Alert History</Text>
       </View>
 
       <FlatList
@@ -78,46 +86,44 @@ export default function History() {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingBottom: 100,
+          paddingTop: 4,
         }}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
             No alert history found.
           </Text>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9ff",
   },
 
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8f9ff",
   },
 
   titleBlock: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 12,
   },
 
   title: {
     fontSize: 28,
     fontWeight: "800",
-    color: "#0d1c2f",
+    letterSpacing: -0.3,
   },
 
   emptyText: {
     textAlign: "center",
     marginTop: 50,
-    color: "gray",
     fontSize: 16,
   },
 });

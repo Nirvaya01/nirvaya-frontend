@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import theme from '../theme';
+import { View, Text, ViewStyle } from 'react-native';
+import designTheme from '../theme';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 type Props = {
   variant?: 'default' | 'elevated' | 'alert';
@@ -9,7 +10,8 @@ type Props = {
 };
 
 export const Card: React.FC<Props> = ({ variant = 'default', children, style }) => {
-  const v = theme.components.card[variant] as {
+  const appTheme = useAppTheme();
+  const v = designTheme.components.card[variant] as {
     backgroundColor: string;
     borderRadius: number;
     padding: number;
@@ -18,8 +20,8 @@ export const Card: React.FC<Props> = ({ variant = 'default', children, style }) 
   };
 
   const container: ViewStyle = {
-    backgroundColor: v.backgroundColor,
-    borderColor: v.borderColor,
+    backgroundColor: appTheme.surface,
+    borderColor: appTheme.border,
     borderWidth: v.borderWidth || 0,
     borderRadius: v.borderRadius,
     padding: v.padding,
@@ -28,7 +30,7 @@ export const Card: React.FC<Props> = ({ variant = 'default', children, style }) 
 
   return (
     <View style={[container, style]}>
-      {typeof children === 'string' ? <Text>{children}</Text> : children}
+      {typeof children === 'string' ? <Text style={{ color: appTheme.text }}>{children}</Text> : children}
     </View>
   );
 };

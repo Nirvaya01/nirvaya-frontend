@@ -13,6 +13,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "../../Context/AuthContext";
+import { useTheme } from "../../Context/ThemeContext";
 
 const COLORS = {
   primary: "#0F5D50",
@@ -25,6 +26,7 @@ const COLORS = {
 
 export default function Login() {
   const { login } = useAuth();
+  const { isDark } = useTheme();
 
   const [email, setEmail] = useState("");
 
@@ -65,35 +67,44 @@ export default function Login() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { backgroundColor: isDark ? "#07111F" : "#FFFFFF" },
+      ]}
+    >
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.title} />
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={isDark ? "#F8FAFC" : COLORS.title}
+          />
         </TouchableOpacity>
 
-        <Text style={styles.logo}>Nirvaya</Text>
+        <Text style={[styles.logo, { color: isDark ? "#F8FAFC" : COLORS.title }]}>Nirvaya</Text>
 
-        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={[styles.title, { color: isDark ? "#F8FAFC" : COLORS.title }]}>Welcome Back</Text>
 
-        <Text style={styles.subtitle}>Log in to continue to Nirvaya.</Text>
+        <Text style={[styles.subtitle, { color: isDark ? "#CBD5E1" : COLORS.subtitle }]}>Log in to continue to Nirvaya.</Text>
 
-        <Text style={styles.label}>Email Address</Text>
+        <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.title }]}>Email Address</Text>
 
-        <View style={styles.inputWrapper}>
+        <View style={[styles.inputWrapper, { backgroundColor: isDark ? "#132238" : COLORS.inputBg }]}>
           <Ionicons
             name="mail-outline"
             size={20}
-            color={COLORS.placeholder}
+            color={isDark ? "#94A3B8" : COLORS.placeholder}
             style={styles.icon}
           />
 
           <TextInput
             style={styles.input}
             placeholder="john@example.com"
-            placeholderTextColor={COLORS.placeholder}
+            placeholderTextColor={isDark ? "#94A3B8" : COLORS.placeholder}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -101,20 +112,20 @@ export default function Login() {
           />
         </View>
 
-        <Text style={styles.label}>Password</Text>
+        <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.title }]}>Password</Text>
 
-        <View style={styles.inputWrapper}>
+        <View style={[styles.inputWrapper, { backgroundColor: isDark ? "#132238" : COLORS.inputBg }]}>
   <Ionicons
     name="lock-closed-outline"
     size={20}
-    color={COLORS.placeholder}
+    color={isDark ? "#94A3B8" : COLORS.placeholder}
     style={styles.icon}
   />
 
   <TextInput
     style={styles.input}
     placeholder="••••••••"
-    placeholderTextColor={COLORS.placeholder}
+    placeholderTextColor={isDark ? "#94A3B8" : COLORS.placeholder}
     value={password}
     onChangeText={setPassword}
     secureTextEntry={!showPassword}
@@ -124,7 +135,7 @@ export default function Login() {
     <Ionicons
       name={showPassword ? "eye-off-outline" : "eye-outline"}
       size={20}
-      color={COLORS.placeholder}
+      color={isDark ? "#94A3B8" : COLORS.placeholder}
     />
   </TouchableOpacity>
 </View>
@@ -133,16 +144,16 @@ export default function Login() {
           <Ionicons
             name="shield-checkmark-outline"
             size={16}
-            color={COLORS.primary}
+            color={isDark ? "#7DD3A7" : COLORS.primary}
           />
 
-          <Text style={styles.secureText}>
+          <Text style={[styles.secureText, { color: isDark ? "#CBD5E1" : COLORS.subtitle }]}>
             Your data is secure and private.
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.button}
+          style={[styles.button, { backgroundColor: isDark ? "#0F9D58" : COLORS.primary }]}
           onPress={handleLogin}
           disabled={loading}
         >
@@ -154,9 +165,9 @@ export default function Login() {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-          <Text style={styles.link}>
+          <Text style={[styles.link, { color: isDark ? "#CBD5E1" : COLORS.subtitle }]}>
             Don&apos;t have an account?{" "}
-            <Text style={styles.linkBold}>Sign Up</Text>
+            <Text style={[styles.linkBold, { color: isDark ? "#7DD3A7" : COLORS.primary }]}>Sign Up</Text>
           </Text>
         </TouchableOpacity>
       </View>
@@ -167,7 +178,6 @@ export default function Login() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.white,
   },
 
   container: {
@@ -183,7 +193,6 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 26,
     fontWeight: "800",
-    color: COLORS.title,
     textAlign: "center",
     marginBottom: 48,
   },
@@ -191,14 +200,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "800",
-    color: COLORS.title,
     textAlign: "center",
     marginBottom: 8,
   },
 
   subtitle: {
     fontSize: 15,
-    color: COLORS.subtitle,
     textAlign: "center",
     marginBottom: 32,
   },
@@ -206,14 +213,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "700",
-    color: COLORS.title,
     marginBottom: 8,
   },
 
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.inputBg,
     borderRadius: 14,
     paddingHorizontal: 14,
     marginBottom: 20,
@@ -227,7 +232,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: COLORS.title,
   },
 
   secureRow: {
@@ -239,12 +243,10 @@ const styles = StyleSheet.create({
 
   secureText: {
     fontSize: 13,
-    color: COLORS.subtitle,
     marginLeft: 6,
   },
 
   button: {
-    backgroundColor: COLORS.primary,
     height: 56,
     borderRadius: 28,
     alignItems: "center",
@@ -259,7 +261,6 @@ const styles = StyleSheet.create({
   },
 
   link: {
-    color: COLORS.subtitle,
     textAlign: "center",
     fontSize: 14,
   },

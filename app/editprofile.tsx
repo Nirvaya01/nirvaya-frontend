@@ -19,8 +19,10 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 
 import { useAuth } from "../Context/AuthContext";
+import { useTheme } from "../Context/ThemeContext";
 
 import { updateProfile } from "../api/profileApi";
+import { getSafeImageSource } from "../utils/imageSource";
 
 const COLORS = {
   primary: "#091426",
@@ -34,6 +36,7 @@ const COLORS = {
 
 export default function EditProfile() {
   const { user, token, refreshProfile } = useAuth();
+  const { isDark } = useTheme();
 
   const [name, setName] = useState((user as any)?.name || "");
 
@@ -170,7 +173,7 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? "#07111F" : COLORS.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -181,10 +184,14 @@ export default function EditProfile() {
 
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={26} color={COLORS.primary} />
+            <Ionicons
+              name="arrow-back"
+              size={26}
+              color={isDark ? "#F8FAFC" : COLORS.primary}
+            />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Edit Profile</Text>
+          <Text style={[styles.headerTitle, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Edit Profile</Text>
 
           <View style={{ width: 26 }} />
         </View>
@@ -193,11 +200,7 @@ export default function EditProfile() {
 
         <View style={styles.imageContainer}>
           <Image
-            source={{
-              uri:
-                profilePicture ||
-                "https://randomuser.me/api/portraits/women/68.jpg",
-            }}
+            source={getSafeImageSource(profilePicture)}
             style={styles.avatar}
           />
 
@@ -208,44 +211,81 @@ export default function EditProfile() {
 
         {/* FORM CARD */}
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Name</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: isDark ? "#0C1727" : COLORS.white },
+          ]}
+        >
+          <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Name</Text>
 
           <TextInput
             value={name}
             onChangeText={setName}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: isDark ? "#132238" : "#FFFFFF",
+                borderColor: isDark ? "#27415F" : COLORS.border,
+                color: isDark ? "#F8FAFC" : COLORS.primary,
+              },
+            ]}
             placeholder="Enter your name"
+            placeholderTextColor={isDark ? "#94A3B8" : COLORS.textSecondary}
           />
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Email</Text>
 
           <TextInput
             value={(user as any)?.email || ""}
             editable={false}
-            style={[styles.input, styles.disabledInput]}
+            style={[
+              styles.input,
+              styles.disabledInput,
+              {
+                backgroundColor: isDark ? "#0F1B2E" : "#EEEEEE",
+                borderColor: isDark ? "#27415F" : COLORS.border,
+                color: isDark ? "#CBD5E1" : "#777",
+              },
+            ]}
           />
 
-          <Text style={styles.label}>Phone</Text>
+          <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Phone</Text>
 
           <TextInput
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: isDark ? "#132238" : "#FFFFFF",
+                borderColor: isDark ? "#27415F" : COLORS.border,
+                color: isDark ? "#F8FAFC" : COLORS.primary,
+              },
+            ]}
             placeholder="Enter phone number"
+            placeholderTextColor={isDark ? "#94A3B8" : COLORS.textSecondary}
           />
 
-          <Text style={styles.label}>Gender</Text>
+          <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Gender</Text>
 
           <TextInput
             value={gender}
             onChangeText={(text) => setGender(text.toLowerCase())}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: isDark ? "#132238" : "#FFFFFF",
+                borderColor: isDark ? "#27415F" : COLORS.border,
+                color: isDark ? "#F8FAFC" : COLORS.primary,
+              },
+            ]}
             placeholder="male/female/other"
+            placeholderTextColor={isDark ? "#94A3B8" : COLORS.textSecondary}
           />
 
-          <Text style={styles.label}>Date of Birth</Text>
+          <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Date of Birth</Text>
           <TextInput
             value={dob}
             onChangeText={(text) => {
@@ -268,18 +308,34 @@ export default function EditProfile() {
 
               setDob(formatted);
             }}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: isDark ? "#132238" : "#FFFFFF",
+                borderColor: isDark ? "#27415F" : COLORS.border,
+                color: isDark ? "#F8FAFC" : COLORS.primary,
+              },
+            ]}
             placeholder="YYYY-MM-DD"
+            placeholderTextColor={isDark ? "#94A3B8" : COLORS.textSecondary}
             keyboardType="number-pad"
           />
 
-          <Text style={styles.label}>Profile Picture URL</Text>
+          <Text style={[styles.label, { color: isDark ? "#F8FAFC" : COLORS.primary }]}>Profile Picture URL</Text>
 
           <TextInput
             value={profilePicture}
             onChangeText={setProfilePicture}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: isDark ? "#132238" : "#FFFFFF",
+                borderColor: isDark ? "#27415F" : COLORS.border,
+                color: isDark ? "#F8FAFC" : COLORS.primary,
+              },
+            ]}
             placeholder="Image URL"
+            placeholderTextColor={isDark ? "#94A3B8" : COLORS.textSecondary}
           />
         </View>
 
@@ -288,6 +344,7 @@ export default function EditProfile() {
         <TouchableOpacity
           style={[
             styles.saveButton,
+            { backgroundColor: isDark ? "#0F9D58" : COLORS.primary },
             loading && {
               opacity: 0.6,
             },
@@ -307,7 +364,6 @@ export default function EditProfile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
 
   header: {
@@ -321,7 +377,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: COLORS.primary,
   },
 
   imageContainer: {
@@ -352,7 +407,6 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: COLORS.white,
     marginHorizontal: 20,
     borderRadius: 18,
     padding: 20,
@@ -362,28 +416,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: "600",
-    color: COLORS.primary,
     marginBottom: 7,
     marginTop: 15,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: COLORS.border,
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
-    color: COLORS.primary,
   },
 
   disabledInput: {
-    backgroundColor: "#EEEEEE",
-    color: "#777",
   },
 
   saveButton: {
-    backgroundColor: COLORS.primary,
     marginHorizontal: 20,
     marginTop: 25,
     paddingVertical: 15,

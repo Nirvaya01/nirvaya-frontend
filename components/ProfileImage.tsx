@@ -9,20 +9,21 @@ import {
   View,
 } from "react-native";
 import { getProfile, saveProfile } from "../utils/profileStorage";
+import { getSafeImageSource } from "../utils/imageSource";
 
 export default function ProfileImage() {
   const [image, setImage] = useState<string | null>(null);
   useEffect(() => {
-  const loadImage = async () => {
-    const profile = await getProfile();
+    const loadImage = async () => {
+      const profile = await getProfile();
 
-    if (profile?.image) {
-      setImage(profile.image);
-    }
-  };
+      if (typeof profile?.image === "string" && profile.image.trim()) {
+        setImage(profile.image);
+      }
+    };
 
-  loadImage();
-}, []);
+    loadImage();
+  }, []);
 
 
   const pickImage = () => {
@@ -68,6 +69,10 @@ const openGallery = async () => {
     const uri = result.assets[0].uri;
     console.log("Selected URI:", uri);
 
+    if (!uri?.trim()) {
+      return;
+    }
+
     setImage(uri);
 
     const profile = await getProfile();
@@ -101,6 +106,10 @@ const openCamera = async () => {
     const uri = result.assets[0].uri;
     console.log("Selected URI:", uri);
 
+    if (!uri?.trim()) {
+      return;
+    }
+
     setImage(uri);
 
  const profile = (await getProfile()) || {};
@@ -121,16 +130,7 @@ console.log("Saved profile:", saved);
       style={styles.container}
       onPress={pickImage}
     >
-      {image ? (
-        <Image source={{ uri: image }} style={styles.image} />
-      ) : (
-        <Image
-          source={{
-            uri: "https://i.pravatar.cc/300",
-          }}
-          style={styles.image}
-        />
-      )}
+      <Image source={getSafeImageSource(image)} style={styles.image} />
 
       <View style={styles.camera}>
         <Feather name="camera" size={18} color="white" />

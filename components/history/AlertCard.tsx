@@ -1,10 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export type AlertEntry = {
   id: string;
-  type: 'sos' | 'location';
+  type: "sos" | "location";
   title: string;
   date: string;
   detail: string;
@@ -16,26 +18,30 @@ type AlertCardProps = {
 };
 
 export default function AlertCard({ item }: AlertCardProps) {
-  const isSos = item.type === 'sos';
+  const theme = useAppTheme();
+  const isSos = item.type === "sos";
 
   return (
-    <View style={styles.card}>
-      <View style={[styles.avatar, isSos ? styles.avatarSos : styles.avatarLoc]}>
+    <View style={[styles.card, { backgroundColor: theme.surface, shadowColor: theme.shadow }]}>
+      <View style={[styles.avatar, isSos ? { backgroundColor: theme.dangerSoft } : { backgroundColor: theme.surfaceSoft }]}>
         <Ionicons
-          name={isSos ? 'megaphone' : 'location'}
+          name={isSos ? "megaphone" : "location"}
           size={22}
-          color={isSos ? '#e15347' : '#0f6e4f'}
+          color={isSos ? theme.danger : theme.primary}
         />
       </View>
+
       <View style={styles.info}>
         <View style={styles.topRow}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.date}>{item.date}</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
+          <Text style={[styles.date, { color: theme.textSecondary }]}>{item.date}</Text>
         </View>
-        <Text style={styles.detail}>{item.detail}</Text>
-        <View style={styles.statusPill}>
-          <Ionicons name="checkmark-circle" size={15} color="#16233d" />
-          <Text style={styles.statusText}>{item.status}</Text>
+
+        <Text style={[styles.detail, { color: theme.textSecondary }]}>{item.detail}</Text>
+
+        <View style={[styles.statusPill, { backgroundColor: theme.surfaceSoft }]}>
+          <Ionicons name="checkmark-circle" size={15} color={theme.primaryDark} />
+          <Text style={[styles.statusText, { color: theme.primaryDark }]}>{item.status}</Text>
         </View>
       </View>
     </View>
@@ -44,46 +50,41 @@ export default function AlertCard({ item }: AlertCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 1,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 14,
   },
-  avatarSos: { backgroundColor: '#fbdfdc' },
-  avatarLoc: { backgroundColor: '#dce9f8' },
   info: { flex: 1 },
   topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     gap: 8,
   },
-  title: { fontWeight: '800', fontSize: 17, color: '#1a1a2e' },
-  date: { fontSize: 12, color: '#6b7280', fontWeight: '600', paddingTop: 2 },
-  detail: { color: '#6b7280', marginTop: 4, fontSize: 13.5, fontWeight: '500' },
+  title: { fontWeight: "800", fontSize: 17 },
+  date: { fontSize: 12, fontWeight: "600", paddingTop: 2 },
+  detail: { marginTop: 4, fontSize: 13.5, fontWeight: "500" },
   statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
-    backgroundColor: '#dce3f7',
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginTop: 10,
   },
-  statusText: { fontSize: 12, color: '#16233d', fontWeight: '700' },
+  statusText: { fontSize: 12, fontWeight: "700" },
 });

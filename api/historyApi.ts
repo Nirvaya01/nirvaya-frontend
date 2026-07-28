@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://192.168.1.68:5000/api";
+import { API_BASE_URL } from "./baseUrl";
 
 export async function getHistory(token: string) {
 

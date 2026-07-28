@@ -1,95 +1,110 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { triggerSOS } from "../api/sosApi";
-import { useAuth } from "../Context/AuthContext";
-
 import CurrentLocationMap from "../components/dashboard/CurrentLocationMap";
+import { useAuth } from "../Context/AuthContext";
 import { useCurrentLocation } from "../hooks/useCurrentLocation";
 
-const COUNTDOWN_SECONDS = 5;
+const DEFAULT_COUNTDOWN_SECONDS = 5;
+const PREFERENCES_STORAGE_KEY = "emergencyPreferences";
+
+type SavedPreferences = {
+  countdown?: number;
+};
 
 export default function SosConfirmation() {
   const { status, coords, errorMessage } = useCurrentLocation();
-
   const { token } = useAuth();
 
-  const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS);
-
+  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_COUNTDOWN_SECONDS);
+  const [countdownReady, setCountdownReady] = useState(false);
   const [sending, setSending] = useState(false);
-
   const [sendError, setSendError] = useState<string | null>(null);
-
   const [sent, setSent] = useState(false);
 
   const cancelledRef = useRef(false);
-
-  // =========================
-  // COUNTDOWN TIMER
-  // =========================
+  const sendingRef = useRef(false);
+  const sentRef = useRef(false);
 
   useEffect(() => {
-    if (sent || cancelledRef.current) return;
+    sendingRef.current = sending;
+  }, [sending]);
 
-    if (secondsLeft <= 0) {
-      handleSend();
+  useEffect(() => {
+    sentRef.current = sent;
+  }, [sent]);
 
-      return;
-    }
+  useEffect(() => {
+    let active = true;
 
-    const timer = setTimeout(
-      () => setSecondsLeft((previous) => previous - 1),
-      1000,
-    );
+    const loadCountdownPreference = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(PREFERENCES_STORAGE_KEY);
 
-    return () => clearTimeout(timer);
-  }, [secondsLeft]);
+        if (!active) {
+          return;
+        }
 
-  // =========================
-  // SEND SOS
-  // =========================
+        if (cached) {
+          const parsed = JSON.parse(cached) as SavedPreferences;
 
-  async function handleSend() {
-    if (sending || sent || cancelledRef.current) {
+          if (
+            parsed.countdown === 3 ||
+            parsed.countdown === 5 ||
+            parsed.countdown === 10
+          ) {
+            setSecondsLeft(parsed.countdown);
+          }
+        }
+      } catch (error) {
+        console.log("Countdown preference load error:", error);
+      } finally {
+        if (active) {
+          setCountdownReady(true);
+        }
+      }
+    };
+
+    loadCountdownPreference();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleSend = useCallback(async () => {
+    if (sendingRef.current || sentRef.current || cancelledRef.current) {
       return;
     }
 
     if (!coords) {
-      setSendError("Still finding your location — try again in a moment.");
-
+      setSendError("Still finding your location - try again in a moment.");
       return;
     }
 
     if (!token) {
       setSendError("Authentication expired. Please login again.");
-
       return;
     }
 
     setSending(true);
-
     setSendError(null);
 
     try {
       const googleMapsUrl = `https://maps.google.com/?q=${coords.latitude},${coords.longitude}`;
 
-      await triggerSOS(
-        token,
-
-        coords.latitude,
-
-        coords.longitude,
-
-        googleMapsUrl,
-      );
+      await triggerSOS(token, coords.latitude, coords.longitude, googleMapsUrl);
 
       setSent(true);
     } catch (error: any) {
@@ -97,20 +112,32 @@ export default function SosConfirmation() {
     } finally {
       setSending(false);
     }
-  }
+  }, [coords, token]);
 
-  // =========================
-  // CANCEL SOS
-  // =========================
+  useEffect(() => {
+    if (!countdownReady || sentRef.current || cancelledRef.current) {
+      return;
+    }
+
+    if (secondsLeft <= 0) {
+      handleSend();
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setSecondsLeft((previous) => previous - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [secondsLeft, countdownReady, handleSend]);
 
   function handleCancel() {
     cancelledRef.current = true;
-
     router.back();
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <View style={styles.topBar} />
 
@@ -119,7 +146,7 @@ export default function SosConfirmation() {
         <Text style={styles.subtitle}>
           {sent
             ? "Your emergency contacts and local authorities have been notified."
-            : "Alerting emergency contacts in…"}
+            : "Alerting emergency contacts in..."}
         </Text>
 
         {!sent && (
@@ -140,7 +167,7 @@ export default function SosConfirmation() {
           Sharing location with your trusted contacts & local authorities.
         </Text>
 
-        {sendError && <Text style={styles.errorText}>{sendError}</Text>}
+        {sendError ? <Text style={styles.errorText}>{sendError}</Text> : null}
 
         {!sent && (
           <>
@@ -162,7 +189,6 @@ export default function SosConfirmation() {
               ) : (
                 <>
                   <Ionicons name="send" size={16} color="#fff" />
-
                   <Text style={styles.sendBtnText}>Send Now</Text>
                 </>
               )}
@@ -179,188 +205,122 @@ export default function SosConfirmation() {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
-    backgroundColor: "#5b6472",
-
+    backgroundColor: "#0f172a",
     alignItems: "center",
-
     justifyContent: "center",
-
-    padding: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 24,
   },
-
   card: {
     width: "100%",
-
+    maxWidth: 460,
     backgroundColor: "#fff",
-
-    borderRadius: 24,
-
+    borderRadius: 28,
     padding: 24,
-
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 10,
   },
-
   topBar: {
     position: "absolute",
-
     top: 0,
-
     left: 0,
-
     right: 0,
-
     height: 6,
-
     backgroundColor: "#e15347",
   },
-
   title: {
     fontSize: 26,
-
     fontWeight: "800",
-
     color: "#0d1c2f",
-
     textAlign: "center",
-
     marginTop: 12,
   },
-
   subtitle: {
     fontSize: 15,
-
     color: "#45474c",
-
     textAlign: "center",
-
     marginTop: 8,
   },
-
   countdownWrap: {
     alignSelf: "center",
-
     width: 140,
-
     height: 140,
-
     borderRadius: 70,
-
     borderWidth: 6,
-
     borderColor: "#fbdfdc",
-
     alignItems: "center",
-
     justifyContent: "center",
-
     marginVertical: 24,
   },
-
   countdownNumber: {
     fontSize: 40,
-
     fontWeight: "800",
-
     color: "#e15347",
   },
-
   locationCaption: {
     fontSize: 13,
-
     color: "#45474c",
-
     marginTop: 12,
-
     marginBottom: 8,
   },
-
   errorText: {
     color: "#ba1a1a",
-
     fontSize: 13,
-
     fontWeight: "600",
-
     marginTop: 8,
-
     textAlign: "center",
   },
-
   cancelBtn: {
     borderWidth: 1.5,
-
     borderColor: "#0d1c2f",
-
     borderRadius: 999,
-
     paddingVertical: 14,
-
     alignItems: "center",
-
     marginTop: 16,
   },
-
   cancelBtnText: {
     fontWeight: "700",
-
     color: "#0d1c2f",
-
     fontSize: 15,
   },
-
   sendBtn: {
     flexDirection: "row",
-
     gap: 8,
-
     backgroundColor: "#e15347",
-
     borderRadius: 999,
-
     paddingVertical: 14,
-
     alignItems: "center",
-
     justifyContent: "center",
-
     marginTop: 12,
   },
-
   sendBtnDisabled: {
     opacity: 0.7,
   },
-
   sendBtnText: {
     color: "#fff",
-
     fontWeight: "800",
-
     fontSize: 15,
   },
-
   doneBtn: {
     backgroundColor: "#0f6e4f",
-
     borderRadius: 999,
-
     paddingVertical: 14,
-
     alignItems: "center",
-
     marginTop: 20,
   },
-
   doneBtnText: {
     color: "#fff",
-
     fontWeight: "800",
   },
 });

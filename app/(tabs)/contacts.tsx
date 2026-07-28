@@ -1,28 +1,41 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useAppTheme } from "@/hooks/useAppTheme";
 import ContactCard from "../../components/contacts/ContactCard";
 import AppHeader from "../../components/ui/AppHeader";
 import { useContacts } from "../../contexts/ContactsContext";
 
 export default function Contacts() {
   const { contacts, fetchContacts } = useContacts();
+  const theme = useAppTheme();
 
   useEffect(() => {
     fetchContacts();
-  }, []);
+  }, [fetchContacts]);
 
   return (
-    <View style={styles.container}>
-     <AppHeader
-  onSettingsPress={() => router.push("/settings")}
-/>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
+      <AppHeader showSettings={false} />
 
       <View style={styles.titleBlock}>
-        <Text style={styles.title}>Trusted Circle</Text>
-        <Text style={styles.subtitleText}>Your emergency contacts</Text>
+        <Text style={[styles.title, { color: theme.text }]}>
+          Trusted Circle
+        </Text>
+        <Text style={[styles.subtitleText, { color: theme.textSecondary }]}>
+          Your emergency contacts
+        </Text>
       </View>
 
       <FlatList
@@ -37,18 +50,21 @@ export default function Contacts() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
       />
 
-      <TouchableOpacity style={styles.fab} onPress={() => router.push("/add-contact")}>
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: theme.primary }]}
+        onPress={() => router.push("/add-contact")}
+      >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9ff" },
-  titleBlock: { paddingHorizontal: 16, marginTop: 8, marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: "700", color: "#0d1c2f" },
-  subtitleText: { fontSize: 16, color: "#45474c", marginTop: 4 },
+  container: { flex: 1 },
+  titleBlock: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12 },
+  title: { fontSize: 24, fontWeight: "700", letterSpacing: -0.3 },
+  subtitleText: { fontSize: 16, marginTop: 4 },
   fab: {
     position: "absolute",
     right: 20,
@@ -56,7 +72,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: "#091426",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "rgba(30,41,59,1)",
