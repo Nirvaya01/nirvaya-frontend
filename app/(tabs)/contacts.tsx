@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import ContactCard from "../../components/contacts/ContactCard";
 import AppHeader from "../../components/ui/AppHeader";
-import { useContacts } from "../../contexts/ContactsContext";
+import { useContacts } from "../../Contexts/ContactsContext";
 
 export default function Contacts() {
   const { contacts, fetchContacts } = useContacts();

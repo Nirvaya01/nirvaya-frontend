@@ -18,7 +18,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import { useContacts } from "../contexts/ContactsContext";
+import { useContacts } from "../Contexts/ContactsContext";
 import { getSafeImageSource } from "../utils/imageSource";
 
 const COLORS = {

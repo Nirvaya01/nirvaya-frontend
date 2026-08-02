@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-import { useContacts } from "../contexts/ContactsContext";
+import { useContacts } from "../Contexts/ContactsContext";
 
 const RELATIONSHIPS = ["Family", "Friend", "Colleague", "Other"];
 

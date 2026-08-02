@@ -1,4 +1,4 @@
-import { ContactsProvider } from "@/contexts/ContactsContext";
+import { ContactsProvider } from "@/Contexts/ContactsContext";
 import { ThemeProvider } from "@/Context/ThemeContext";
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";

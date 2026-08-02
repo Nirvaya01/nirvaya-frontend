@@ -34,8 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const checkLoginStatus = useCallback(async () => {
+    let savedToken: string | null = null;
+
     try {
-      const savedToken = await AsyncStorage.getItem("accessToken");
+      savedToken = await AsyncStorage.getItem("accessToken");
 
       const savedUser = await AsyncStorage.getItem("user");
 
@@ -45,10 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(JSON.parse(savedUser));
 
         setIsLoggedIn(true);
+      }
+    } catch (error) {
+      console.log("Auth restore error:", error);
+    } finally {
+      setIsLoading(false);
+    }
 
-        // Get latest user data from backend
+    if (savedToken) {
+      try {
+        // Do not block app startup when the phone cannot reach the local backend.
         const profile = await getProfile(savedToken);
-
         const updatedUser = {
           _id: profile.id,
           name: profile.name,
@@ -60,13 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
 
         setUser(updatedUser);
-
         await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+      } catch (error) {
+        console.log("Profile refresh error:", error);
       }
-    } catch (error) {
-      console.log("Auth restore error:", error);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
